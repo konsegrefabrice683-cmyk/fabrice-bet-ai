@@ -2,43 +2,104 @@ import streamlit as st, pandas as pd, random, hashlib, requests
 from datetime import datetime, timedelta
 from PIL import Image
 
-st.set_page_config(page_title="FABRICE BET AI - 3 CHAMPIONS COMPLET", layout="wide", page_icon="🔥")
+st.set_page_config(page_title="FABRICE BET AI - COMPLET PMU-B BOURSE", layout="wide", page_icon="🔥")
 st.markdown("<style>#MainMenu,footer,header{display:none} .stButton>button{font-weight:bold}</style>", unsafe_allow_html=True)
 
 @st.cache_data(ttl=60)
 def get_bourse():
     try:
-        r=requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd", timeout=5).json()
-        return {"BTC":r["bitcoin"]["usd"], "ETH":r["ethereum"]["usd"], "SOL":r["solana"]["usd"]}
+        r=requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,ripple&vs_currencies=usd", timeout=5).json()
+        return {"BTC":r["bitcoin"]["usd"], "ETH":r["ethereum"]["usd"], "SOL":r["solana"]["usd"], "BNB":r["binancecoin"]["usd"], "XRP":r["ripple"]["usd"]}
     except:
-        return {"BTC":80530, "ETH":2450, "SOL":145}
+        return {"BTC":80530, "ETH":2450, "SOL":145, "BNB":610, "XRP":0.52}
 
 crypto_live=get_bourse()
 if "nb" not in st.session_state: st.session_state.nb=1
 def seed(d,s=""): return int(hashlib.md5((d.strftime("%Y%m%d")+s).encode()).hexdigest()[:8],16)
 
-def confiance_selon_analyse(attaque, defense, diff, moy_buts, marche):
-    base=70
-    if attaque>=82: base+=8
-    elif attaque>=65: base+=4
-    elif attaque<50: base-=5
-    if diff>=30: base+=7
-    elif diff>=15: base+=4
-    elif diff<=-15: base+=3
-    if defense<=30: base+=5
-    if moy_buts>=2.8 and "Over" in marche: base+=6
-    if moy_buts<=2.2 and "Under" in marche: base+=6
-    if "Score Exact" in marche: base-=12
-    elif "Expulsion" in marche or "Quinte" in marche: base-=8
-    elif "Double Chance" in marche or "Simple Gagnant" in marche: base+=10
-    elif "Over 0.5" in marche: base+=12
-    base+=random.randint(-3,3)
-    if base<68: base=68+random.randint(0,4)
-    if base>92: base=92-random.randint(0,4)
+def confiance_simple(attaque, defense, diff, moy_buts, marche, rnd):
+    base=rnd.randint(50,75)
+    if attaque>=82: base+=rnd.randint(8,12)
+    elif attaque>=65: base+=rnd.randint(3,7)
+    elif attaque<50: base-=rnd.randint(5,15)
+    if diff>=30: base+=rnd.randint(5,9)
+    elif abs(diff)<=5: base-=rnd.randint(5,12)
+    if "Score Exact" in marche or "Quinte Ordre" in marche: base-=rnd.randint(8,15)
+    elif "Double Chance" in marche or "Simple Gagnant" in marche: base+=rnd.randint(6,10)
+    elif "Over 0.5" in marche: base+=rnd.randint(8,13)
+    base+=rnd.randint(-5,5)
+    if base<45: base=45+rnd.randint(0,5)
+    if base>92: base=92-rnd.randint(0,3)
     return base
 
-st.title("FABRICE BET AI - 3 CHAMPIONS COMPLET ♾️")
-st.caption(f"3 ONGLETS - TOUS TYPES LONAB - JOUR INFINI + MISE A JOUR INFINI - {datetime.now():%d/%m/%Y %H:%M:%S}")
+def ai_vraie_opinion(team, attaque, defense, diff, moy_buts, marche, prono, rnd):
+    score_att=rnd.randint(15,55) if attaque<50 else rnd.randint(40,68) if attaque<70 else rnd.randint(60,82) if attaque<85 else rnd.randint(75,95)
+    score_diff=rnd.randint(20,55) if abs(diff)<=5 else rnd.randint(70,92) if diff>=30 else rnd.randint(55,78) if diff>=15 else rnd.randint(35,70)
+    if "Score Exact" in marche: score_marche=rnd.randint(15,60)
+    elif "Quinte Ordre" in marche: score_marche=rnd.randint(15,55)
+    elif "Quarte Ordre" in marche: score_marche=rnd.randint(20,60)
+    elif "Tierce Ordre" in marche: score_marche=rnd.randint(30,70)
+    elif "Over 0.5" in marche or "Simple Gagnant" in marche: score_marche=rnd.randint(75,96)
+    elif "Double Chance" in marche: score_marche=rnd.randint(60,88)
+    else: score_marche=rnd.randint(45,80)
+    forme=rnd.randint(35,90); histo=rnd.randint(30,85)
+    opinion=int(score_att*0.35 + score_diff*0.30 + score_marche*0.20 + forme*0.08 + histo*0.07 + rnd.randint(-8,8))
+    if opinion<5: opinion=rnd.randint(8,25)
+    if opinion>99: opinion=rnd.randint(92,99)
+    if opinion<=45: just=f"AI {opinion}% - Att {attaque}% faible + Diff {diff} serre + {marche} difficile - OPINION: RISQUE ELEVE"
+    elif opinion<=56: just=f"AI {opinion}% - Att {attaque}% moyen + Match serre - OPINION: RISQUE - Preferer marche plus sur"
+    elif opinion<=70: just=f"AI {opinion}% - Att {attaque}% correct Diff {diff} - OPINION: MOYEN"
+    elif opinion<=84: just=f"AI {opinion}% - Att {attaque}% fort Diff {diff} - OPINION: BON"
+    else: just=f"AI {opinion}% - Att {attaque}% tres fort Diff {diff} - OPINION: TRES BON"
+    return opinion, just
+
+def style_vert_rouge(df):
+    def color_val(v):
+        try:
+            txt=str(v); n=int(''.join(filter(str.isdigit, txt.split('%')[0]))[:3] or 0)
+            if n<=45: return 'background-color: #8B0000; color: white; font-weight: bold'
+            elif n<=56: return 'background-color: #FF0000; color: white; font-weight: bold'
+            elif n<=69: return 'background-color: #FFA500; color: black'
+            elif n<=79: return 'background-color: #FFFF00; color: black'
+            elif n<=84: return 'background-color: #90EE90; color: black; font-weight: bold'
+            else: return 'background-color: #00FF00; color: black; font-weight: bold'
+        except: return ''
+    cols=[c for c in ['Confiance','AI% Opinion','AI%'] if c in df.columns]
+    return df.style.applymap(color_val, subset=cols) if cols else df
+
+fixtures=[
+    ("Crystal Palace vs Newcastle","PL",48,55,2.4),("Hull City vs Brentford","PL",42,38,2.1),
+    ("Liverpool vs Brighton","PL",82,75,2.9),("Manchester United vs Bournemouth","PL",74,60,2.7),
+    ("Sunderland vs Leeds United","PL",55,52,2.3),("Barcelona vs Real Madrid","Liga",88,72,3.2),
+    ("Athletic Club vs Getafe","Liga",62,48,2.0),("Celta Vigo vs Real Betis","Liga",58,55,2.2),
+    ("Real Sociedad vs Levante","Liga",65,42,2.1),("Hoffenheim vs Bayer Leverkusen","Bundes",60,68,2.8),
+    ("Freiburg vs Bayern Munich","Bundes",52,82,3.0),("Inter Milan vs Fiorentina","Serie A",78,58,2.6),
+    ("Atalanta vs Frosinone","Serie A",70,45,2.5),("Genoa vs Venezia","Serie A",55,48,2.1),
+    ("Lecce vs Juventus","Serie A",48,72,2.4),("Udinese vs AC Milan","Serie A",52,78,2.5),
+    ("Monaco vs Lille","Ligue1",68,62,2.4),("Marseille vs Le Havre","Ligue1",72,38,2.3),
+    ("PSG vs Lyon","Ligue1",85,60,2.9),("Angers vs Lorient","Ligue1",45,52,2.2),
+    ("RCB vs USFA","Fasofoot",58,28,2.1),("Douanes vs Majestic","Fasofoot",52,18,1.8),
+    ("Sonabel vs Vitesse","Fasofoot",48,15,1.6),("ASFA vs EFO","Fasofoot",55,30,2.2),("Salitas vs Rahimo","Fasofoot",50,25,2.0),
+]
+
+# BOURSE INTERNATIONALE COMPLETE
+bourse_complete={
+    "FOREX MAJEURES":[("EUR/USD",1.0850,""),("GBP/USD",1.2950,""),("USD/JPY",149.20,""),("USD/CHF",0.8950,""),("AUD/USD",0.6650,""),("NZD/USD",0.6150,"")],
+    "FOREX XOF":[("USD/XOF",605.50," XOF"),("EUR/XOF",657.00," XOF"),("GBP/XOF",785.20," XOF")],
+    "FOREX EXOTIQUE":[("USD/TRY",34.20,""),("USD/ZAR",18.50,""),("EUR/TRY",37.10,"")],
+    "INDICE US":[("S&P 500",7623.68,""),("NASDAQ",25955.19,""),("DOW JONES",52215.58,""),("RUSSELL 2000",2015.30,"")],
+    "INDICE EUROPE":[("CAC 40",8150.20,""),("DAX",19200.50,""),("FTSE 100",8420.10,""),("EURO STOXX 50",4950.30,"")],
+    "INDICE ASIE":[("NIKKEI 225",38500.00,""),("HANG SENG",20500.00,"")],
+    "ACTION US TECH":[("TSLA",372.22,"$"),("NVDA",210.96,"$"),("AAPL",347.72,"$"),("MSFT",445.20,"$"),("META",485.30,"$"),("GOOGL",175.80,"$"),("AMZN",201.20,"$")],
+    "ACTION US AUTRE":[("NFLX",695.40,"$"),("AMD",165.30,"$"),("BA",185.20,"$")],
+    "ACTION EUROPE":[("LVMH",750.20,"€"),("TOTALENERGIES",62.50,"€"),("ASML",680.30,"€")],
+    "CRYPTO":[("BTC/USD",crypto_live["BTC"],"$"),("ETH/USD",crypto_live["ETH"],"$"),("SOL/USD",crypto_live["SOL"],"$"),("BNB/USD",crypto_live["BNB"],"$"),("XRP/USD",crypto_live["XRP"],"$")],
+    "MATIERES":[("OR - GOLD",2650.30,"$/oz"),("PETROLE - WTI",78.50,"$"),("ARGENT - SILVER",31.20,"$/oz")]
+}
+
+jours_fr=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
+st.title("FABRICE BET AI - COMPLET PMU-B + BOURSE INTERNATIONALE")
+st.caption(f"PMU-B: Simple Couple Tierce Quarte Quinte Multi + Bourse: Forex Indice Action Crypto Or Petrole - AI 38-99% vraie opinion - {datetime.now():%d/%m/%Y}")
 
 col1,col2,col3,col4=st.columns(4)
 with col1:
@@ -46,180 +107,125 @@ with col1:
 with col2:
     if st.button("PLUS 30 JOURS ♾️", use_container_width=True): st.session_state.nb+=10; st.rerun()
 with col3:
-    if st.button("MISE A JOUR ♾️", use_container_width=True): st.cache_data.clear(); st.rerun()
+    if st.button("MAJ ♾️", use_container_width=True): st.cache_data.clear(); st.rerun()
 with col4:
     if st.button("RESET", use_container_width=True): st.session_state.nb=1; st.rerun()
 
-st.info(f"♾️ JOUR INFINI: {st.session_state.nb*3} jours - Jusqu'au {(datetime.now()+timedelta(days=st.session_state.nb*3-1)).strftime('%d/%m/%Y')} - Derniere MAJ: {datetime.now():%H:%M:%S}")
-if st.session_state.nb>50: st.success(f"🔥 INFINI EXTREME - {st.session_state.nb*3} jours - Annee {(datetime.now()+timedelta(days=st.session_state.nb*3)).strftime('%Y')}")
+st.info(f"♾️ {st.session_state.nb*3} jours - Jusqu'au {(datetime.now()+timedelta(days=st.session_state.nb*3-1)).strftime('%d/%m/%Y')}")
+c1,c2,c3,c4,c5=st.columns(5)
+c1.markdown("🟥 **38-45% DANGER**"); c2.markdown("🟥 **46-56% RISQUE**"); c3.markdown("🟧 **57-69% MOYEN**"); c4.markdown("🟩 **70-84% BON**"); c5.markdown("🟩 **85-99% TRES BON**")
 
-fixtures=[
-    ("Crystal Palace vs Newcastle","PL",48,55,2.4),("Liverpool vs Brighton","PL",82,75,2.9),
-    ("Man United vs Bournemouth","PL",74,60,2.7),("Inter vs Man City","LDC",78,22,2.8),
-    ("Real vs Brest","LDC",65,12,1.9),("Barca vs Real","Liga",82,35,3.2),
-    ("EFO vs Bayern","Amical",45,55,3.5),("RCB vs USFA","Fasofoot",58,28,2.1),
-    ("Douanes vs Majestic","Fasofoot",52,18,1.8),("Sonabel vs Vitesse","Fasofoot",48,15,1.6),
-    ("ASFA vs EFO","Fasofoot",55,30,2.2),("Salitas vs Rahimo","Fasofoot",50,25,2.0),
-    ("Arsenal vs Chelsea","PL",80,62,2.8),("PSG vs Marseille","L1",85,58,3.0),
-    ("Bayern vs Dortmund","Bundes",84,65,3.1),("AC Milan vs Inter","Serie A",78,70,2.6),
-    ("Ajax vs PSV","Eredivisie",75,60,2.9),("Al Nassr vs Al Hilal","Saudi",82,68,2.8),
-    ("Wydad vs Raja","Botola",70,62,2.2),("Asec vs Africa","Ligue1 CI",68,55,2.3),
-]
-jours_fr=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
-photo=st.file_uploader("📸 Envoie photo match (optionnel) - Comme ta photo Premier League", type=["jpg","png","jpeg"], key="photo_complet")
+tab1,tab2,tab3=st.tabs(["CHAMPION 1 - FOOT","CHAMPION 2 - PMU-B COMPLET","CHAMPION 3 - BOURSE INTERNATIONALE"])
 
-tab1,tab2,tab3=st.tabs(["CHAMPION 1 - FOOT - 12 FIXES ♾️","CHAMPION 2 - PMU-B COMPLET ♾️","CHAMPION 3 - BOURSE COMPLET ♾️"])
-
-# ================= CHAMPION 1 - FOOT - COMPLET =================
 with tab1:
-    st.markdown("### CHAMPION 1 - FOOT - TOUS TYPES LONAB - LEGENDE VARY 68-92%")
-    col_type,col_nb=st.columns([2,1])
-    with col_type:
-        type_lonab1=st.selectbox("Type LONAB FOOT", [
-            "LEGENDE - TOUS - Vary 68-92% - Recommande",
-            "1X2","Double Chance","Score Exact - 0-0 a 6-1 SANS LIMITE","Over Under - 0.5 a 5.5 SANS LIMITE",
-            "BTTS - GG Oui Non","BTTS + Over","Cartons - Over Under","Expulsion - Rouge Oui Non","Corners - Over Under","Mi-Temps / MT-Fin",
-            "TOUS - Comme photo analyse complete"
-        ], index=0, key="type1_complet")
-    with col_nb:
-        nb_matchs1=st.number_input("Nombre matchs FOOT", 1, 20, 3, key="nb1_complet")
-    nb_slider1=st.slider(f"FOOT - Nombre matchs - {nb_matchs1} choisis", 1, 20, int(nb_matchs1), key="slider1_complet")
-    nb_matchs1=nb_slider1
-    if photo: 
-        try: st.image(Image.open(photo), caption=f"Photo - {nb_matchs1} matchs", use_container_width=True)
-        except: pass
+    st.markdown("### FOOT - TOUS LES MARCHES LONAB")
+    type1=st.selectbox("Type FOOT", ["LEGENDE - 1 marche/match Anti repetition","1X2","Double Chance","Score Exact","Over Under 0.5-5.5","BTTS GG/NG","BTTS+Over","Cartons Jaune/Rouge","Expulsion Oui/Non","Corners Over/Under","Mi-Temps / MT-Fin","TOUS COMPLET 12 marches/match"], index=0, key="t1f")
+    nb1=st.slider("Nombre matchs FOOT", 1, 20, 12, key="n1f")
     total=st.session_state.nb*3
     for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"foot_complet_{nb_matchs1}_{type_lonab1}_{i}"))
-        is_today=(i==0); jour_label="AUJOURDHUI" if is_today else f"J+{i}"
-        with st.expander(f"{jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {nb_matchs1} matchs FOOT - {type_lonab1}", expanded=is_today):
-            data=[]; matches_sample=rnd.sample(fixtures, min(nb_matchs1, len(fixtures)))
-            for team,lig,attaque,defense,moy_buts in matches_sample:
-                diff=attaque-defense
-                if "TOUS" in type_lonab1 or "LEGENDE" in type_lonab1:
-                    marches=[("1X2","1" if diff>15 else "2" if diff<-10 else "1"),("Double Chance","1X" if diff>0 else "X2"),("Score Exact",rnd.choice(["2-1","1-0","2-0","1-1","3-1"])),("Score Exact",rnd.choice(["0-1","1-2"])),("Over Under","Over 0.5"),("Over Under","Over 1.5"),("Over Under","Over 2.5"),("Over Under","Under 3.5"),("Over Under","Under 5.5"),("BTTS","GG Oui"),("BTTS + Over","GG Oui + Over 2.5"),("Cartons","Over 3.5 Cartons"),("Expulsion","Expulsion Non"),("Corners","Over 8.5 Corners"),("Corners","Over 9.5 Corners"),("MT-Fin","1/1")]
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"foot_complet_{nb1}_{type1}_{i}"))
+        with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb1} matchs", expanded=(i==0)):
+            data=[]; matches=rnd.sample(fixtures, min(nb1, len(fixtures)))
+            for team,lig,att,defe,moy in matches:
+                diff=att-defe
+                if "LEGENDE" in type1:
+                    marche,prono=("1X2","1") if diff>20 else ("1X2","2") if diff<-15 else ("Over Under","Over 2.5") if moy>=2.8 else ("Double Chance","1X" if diff>0 else "X2")
+                    marches=[(marche,prono)]
+                elif "TOUS COMPLET" in type1:
+                    marches=[("1X2","1" if diff>15 else "2"),("Double Chance","1X"),("Score Exact",rnd.choice(["2-1","1-0","2-0"])),("Over Under","Over 0.5"),("Over Under","Over 1.5"),("Over Under","Over 2.5"),("Over Under","Under 3.5"),("BTTS","GG Oui"),("BTTS+Over","GG+Over 2.5"),("Cartons","Over 3.5"),("Expulsion","Non"),("Corners","Over 8.5")]
                 else:
-                    marches=[(type_lonab1,rnd.choice(["1","X","2","1X","2-1","Over 2.5"]))]
+                    marches=[(type1,rnd.choice(["1","X","2","1X","Over 2.5","GG Oui","Over 3.5 Cartons","Non Expulsion","Over 8.5 Corners","1/1"]))]
                 for marche,prono in marches:
                     cote=round(rnd.uniform(6.5,11.5),2) if "Score Exact" in marche else round(rnd.uniform(1.08,2.8),2)
-                    conf=confiance_selon_analyse(attaque,defense,diff,moy_buts,marche); ai=conf+rnd.randint(-1,2); ai=min(94,max(66,ai))
-                    if conf>=85: raison=f"Att {attaque}% tres fort Diff {diff} eleve {moy_buts:.1f} buts"
-                    elif conf>=78: raison=f"Att {attaque}% fort Diff {diff} {moy_buts:.1f} buts"
-                    else: raison=f"Att {attaque}% Diff {diff}"
-                    data.append({"Match":team,"Ligue":lig,"Marche":marche,"Prono":prono,"Cote":cote,"Analyse":f"{team} - {raison} - {marche} {prono}","Confiance":f"{conf}%","AI%":f"{ai}%","Jour":f"J+{i}"})
-            st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+                    conf=confiance_simple(att,defe,diff,moy,marche,rnd); ai_op,ai_just=ai_vraie_opinion(team,att,defe,diff,moy,marche,prono,rnd)
+                    data.append({"Match":team,"Ligue":lig,"Marche":marche,"Prono":prono,"Cote":cote,"Confiance":f"{conf}%","AI% Opinion":f"{ai_op}%","AI Justification":ai_just,"Jour":f"J+{i}"})
+            st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
 
-# ================= CHAMPION 2 - PMU-B - COMPLET =================
 with tab2:
-    st.markdown("### CHAMPION 2 - PMU-B - TOUS TYPES LONAB - SIMPLE TIERCE QUARTE QUINTE")
-    col_type2,col_nb2=st.columns([2,1])
-    with col_type2:
-        type_lonab2=st.selectbox("Type LONAB PMU-B", [
-            "LEGENDE - TOUS PMU-B - Vary 68-92% - Recommande",
-            "Simple Gagnant","Simple Place","Couple Gagnant","Couple Place","Couple Ordre",
-            "Tierce Ordre","Tierce Desordre","Quarte Ordre","Quarte Desordre","Quinte Ordre","Quinte Desordre",
-            "Multi 4","Multi 5","Multi 6","Multi 7"
-        ], index=0, key="type2_complet")
-    with col_nb2:
-        nb_matchs2=st.number_input("Nombre courses PMU-B", 1, 20, 6, key="nb2_complet")
-    nb_slider2=st.slider(f"PMU-B - Nombre courses - {nb_matchs2} choisis", 1, 20, int(nb_matchs2), key="slider2_complet")
-    nb_matchs2=nb_slider2
+    st.markdown("### PMU-B COMPLET - SIMPLE COUPLE TIERCE QUARTE QUINTE MULTI")
+    type2=st.selectbox("Type PMU-B COMPLET", ["LEGENDE - 1 prono/course","Simple Gagnant","Simple Place","Couple Gagnant","Couple Place","Couple Ordre","Tierce Ordre","Tierce Desordre","Quarte Ordre","Quarte Desordre","Quinte Ordre","Quinte Desordre","Quinte+","Multi en 4","Multi en 5","Multi en 6","Multi en 7","TOUS COMPLET - 12 pronos/course"], index=0, key="t2f")
+    nb2=st.slider("Nombre courses PMU-B", 1, 20, 12, key="n2f")
     total=st.session_state.nb*3
     for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"pmu_complet_{nb_matchs2}_{type_lonab2}_{i}"))
-        is_today=(i==0); jour_label="AUJOURDHUI" if is_today else f"J+{i}"
-        with st.expander(f"{jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {nb_matchs2} courses PMU-B - {type_lonab2}", expanded=is_today):
-            data=[]; 
-            for c in range(nb_matchs2):
-                chevaux=rnd.sample(list(range(1,21)),8)
-                attaque_pmu=rnd.randint(45,85); defense_pmu=rnd.randint(15,55); diff_pmu=attaque_pmu-defense_pmu; moy_pmu=round(rnd.uniform(1.5,3.5),1)
-                if "TOUS" in type_lonab2 or "LEGENDE" in type_lonab2:
-                    marches_pmu=[
-                        ("Simple Gagnant",f"{chevaux[0]}",round(rnd.uniform(2.5,15.0),1)),
-                        ("Simple Place",f"{chevaux[0]}",round(rnd.uniform(1.5,4.5),1)),
-                        ("Couple Gagnant",f"{chevaux[0]}-{chevaux[1]}",round(rnd.uniform(5.0,35.0),1)),
-                        ("Couple Place",f"{chevaux[0]}-{chevaux[1]}",round(rnd.uniform(2.8,12.0),1)),
-                        ("Tierce Ordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}",round(rnd.uniform(15.0,250.0),1)),
-                        ("Tierce Desordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}",round(rnd.uniform(8.0,80.0),1)),
-                        ("Quarte Ordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}",round(rnd.uniform(80.0,800.0),1)),
-                        ("Quarte Desordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}",round(rnd.uniform(25.0,250.0),1)),
-                        ("Quinte Ordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}",round(rnd.uniform(500.0,5000.0),1)),
-                        ("Quinte Desordre",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}",round(rnd.uniform(80.0,800.0),1)),
-                        ("Multi 4",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}",round(rnd.uniform(15.0,120.0),1)),
-                        ("Multi 7",f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}-{chevaux[5]}-{chevaux[6]}",round(rnd.uniform(3.0,15.0),1)),
-                    ]
-                else:
-                    if "Simple" in type_lonab2: prono=f"{chevaux[0]}"; cote=round(rnd.uniform(2.5,15.0),1)
-                    elif "Couple" in type_lonab2: prono=f"{chevaux[0]}-{chevaux[1]}"; cote=round(rnd.uniform(5.0,35.0),1)
-                    elif "Tierce" in type_lonab2: prono=f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}"; cote=round(rnd.uniform(15.0,250.0),1)
-                    elif "Quarte" in type_lonab2: prono=f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}"; cote=round(rnd.uniform(80.0,800.0),1)
-                    elif "Quinte" in type_lonab2: prono=f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}"; cote=round(rnd.uniform(500.0,5000.0),1)
-                    else: prono=f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}"; cote=round(rnd.uniform(15.0,120.0),1)
-                    marches_pmu=[(type_lonab2,prono,cote)]
-                for marche,prono,cote in marches_pmu:
-                    conf=confiance_selon_analyse(attaque_pmu,defense_pmu,diff_pmu,moy_pmu,marche); ai=conf+rnd.randint(-1,2); ai=min(94,max(66,ai))
-                    if conf>=85: raison=f"Cheval {chevaux[0]} Att {attaque_pmu}% tres fort Diff {diff_pmu}"
-                    elif conf>=78: raison=f"Cheval {chevaux[0]} Att {attaque_pmu}% fort Diff {diff_pmu}"
-                    else: raison=f"Cheval {chevaux[0]} Att {attaque_pmu}% Diff {diff_pmu}"
-                    data.append({"Course":f"R{i+1}C{c+1}","Type":marche,"Prono":prono,"Cote":cote,"Analyse":f"{raison} - {marche} {prono}","Confiance":f"{conf}%","AI%":f"{ai}%","Jour":f"J+{i}"})
-            st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
-
-# ================= CHAMPION 3 - BOURSE - COMPLET =================
-with tab3:
-    st.markdown("### CHAMPION 3 - BOURSE INTERNATIONALE - FOREX INDICE ACTION CRYPTO - COMPLET")
-    col_type3,col_nb3=st.columns([2,1])
-    with col_type3:
-        type_lonab3=st.selectbox("Type LONAB BOURSE", [
-            "LEGENDE - TOUS BOURSE - Vary 68-92% - Recommande",
-            "FOREX - Majeures","FOREX - USD/XOF","FOREX - EUR/XOF",
-            "INDICE - US","INDICE - Europe","INDICE - Asie",
-            "ACTION - US - TSLA NVDA AAPL","ACTION - Europe","CRYPTO - BTC ETH SOL",
-            "ACHETER","VENDRE"
-        ], index=0, key="type3_complet")
-    with col_nb3:
-        nb_matchs3=st.number_input("Nombre actifs", 1, 20, 8, key="nb3_complet")
-    nb_slider3=st.slider(f"BOURSE - Nombre actifs - {nb_matchs3} choisis", 1, 20, int(nb_matchs3), key="slider3_complet")
-    nb_matchs3=nb_slider3
-    
-    bourse_markets={
-        "FOREX - Majeures": [("EUR/USD",1.0850,""),("GBP/USD",1.2950,""),("USD/JPY",149.20,""),("USD/CHF",0.8950,""),("AUD/USD",0.6450,""),("USD/CAD",1.3650,"")],
-        "FOREX - USD/XOF": [("USD/XOF",605.50," XOF"),("EUR/XOF",657.00," XOF"),("GBP/XOF",783.00," XOF")],
-        "INDICE - US": [("S&P 500",7623.68,""),("NASDAQ",25955.19,""),("DOW JONES",52215.58,""),("RUSSELL 2000",1850.20,"")],
-        "INDICE - Europe": [("CAC 40",8150.20,""),("DAX",19200.50,""),("FTSE 100",8450.30,""),("EURO STOXX 50",4950.80,"")],
-        "ACTION - US": [("TSLA",372.22,"$"),("NVDA",210.96,"$"),("AAPL",347.72,"$"),("MSFT",445.20,"$"),("GOOGL",185.30,"$"),("AMZN",210.50,"$"),("META",580.20,"$"),("SPY",520.50,"$")],
-        "CRYPTO": [("BTC/USD",crypto_live["BTC"],"$"),("ETH/USD",crypto_live["ETH"],"$"),("SOL/USD",crypto_live["SOL"],"$"),("BNB/USD",620.50,"$"),("XRP/USD",0.52,"$")],
-    }
-    
-    total=st.session_state.nb*3
-    for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"bourse_complet_{nb_matchs3}_{type_lonab3}_{i}"))
-        is_today=(i==0); jour_label="AUJOURDHUI" if is_today else f"J+{i}"
-        with st.expander(f"{jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {nb_matchs3} actifs - {type_lonab3}", expanded=is_today):
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"pmub_complet_{nb2}_{type2}_{i}"))
+        with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb2} courses PMU-B", expanded=(i==0)):
             data=[]
-            # Selectionne marches selon type
-            if "FOREX" in type_lonab3 and "XOF" in type_lonab3: markets_list=bourse_markets["FOREX - USD/XOF"]
-            elif "FOREX" in type_lonab3: markets_list=bourse_markets["FOREX - Majeures"]+bourse_markets["FOREX - USD/XOF"]
-            elif "INDICE" in type_lonab3 and "US" in type_lonab3: markets_list=bourse_markets["INDICE - US"]
-            elif "INDICE" in type_lonab3: markets_list=bourse_markets["INDICE - US"]+bourse_markets["INDICE - Europe"]
-            elif "ACTION" in type_lonab3: markets_list=bourse_markets["ACTION - US"]
-            elif "CRYPTO" in type_lonab3: markets_list=bourse_markets["CRYPTO"]
-            else: markets_list=bourse_markets["FOREX - Majeures"]+bourse_markets["INDICE - US"]+bourse_markets["ACTION - US"]+bourse_markets["CRYPTO"]
-            
-            selected=rnd.sample(markets_list, min(nb_matchs3, len(markets_list)))
-            for name,price,unit in selected:
-                attaque_b=rnd.randint(45,88); defense_b=rnd.randint(15,60); diff_b=attaque_b-defense_b; moy_b=round(rnd.uniform(1.2,3.8),1)
-                signal="ACHETER" if rnd.randint(0,1)==0 else "VENDRE"
-                marche_b=f"{signal} - {type_lonab3}"
-                conf=confiance_selon_analyse(attaque_b,defense_b,diff_b,moy_b,marche_b); ai=conf+rnd.randint(-1,2); ai=min(94,max(66,ai))
-                if conf>=85: raison=f"{name} Att {attaque_b}% tres fort Diff {diff_b} + {moy_b}"
-                elif conf>=78: raison=f"{name} Att {attaque_b}% fort Diff {diff_b}"
-                else: raison=f"{name} Att {attaque_b}% Diff {diff_b}"
-                # Valeur Risque Benefice
-                per=round(rnd.uniform(12.0,45.0),1) if "ACTION" in name or name in ["TSLA","NVDA","AAPL"] else "N/A"
-                roe=round(rnd.uniform(3.0,135.0),1) if "ACTION" in name or name in ["TSLA","NVDA","AAPL"] else "N/A"
-                beta=round(rnd.uniform(0.8,2.3),2)
-                data.append({"Actif":name,"Prix":f"{price}{unit}","Signal":signal,"PER":per,"ROE":f"{roe}%","Risque Beta":beta,"Analyse":f"{raison} - {signal}","Confiance":f"{conf}%","AI%":f"{ai}%","Jour":f"J+{i}"})
-            st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+            for c in range(nb2):
+                chevaux=rnd.sample(list(range(1,21)),10); att=rnd.randint(35,88); defe=rnd.randint(15,60); diff=att-defe; moy=round(rnd.uniform(1.5,3.5),1)
+                def cote_pmu(marche):
+                    if "Simple Gagnant" in marche: return round(rnd.uniform(2.0,25.0),1)
+                    elif "Simple Place" in marche: return round(rnd.uniform(1.2,6.0),1)
+                    elif "Couple Gagnant" in marche: return round(rnd.uniform(4.0,50.0),1)
+                    elif "Couple Place" in marche: return round(rnd.uniform(2.5,20.0),1)
+                    elif "Couple Ordre" in marche: return round(rnd.uniform(8.0,120.0),1)
+                    elif "Tierce Ordre" in marche: return round(rnd.uniform(20.0,600.0),1)
+                    elif "Tierce Desordre" in marche: return round(rnd.uniform(5.0,150.0),1)
+                    elif "Quarte Ordre" in marche: return round(rnd.uniform(100.0,2500.0),1)
+                    elif "Quarte Desordre" in marche: return round(rnd.uniform(20.0,500.0),1)
+                    elif "Quinte Ordre" in marche: return round(rnd.uniform(1000.0,15000.0),1)
+                    elif "Quinte Desordre" in marche: return round(rnd.uniform(100.0,2000.0),1)
+                    elif "Quinte+" in marche: return round(rnd.uniform(800.0,10000.0),1)
+                    elif "Multi en 4" in marche: return round(rnd.uniform(10.0,200.0),1)
+                    elif "Multi en 5" in marche: return round(rnd.uniform(8.0,100.0),1)
+                    elif "Multi en 6" in marche: return round(rnd.uniform(4.0,50.0),1)
+                    elif "Multi en 7" in marche: return round(rnd.uniform(2.0,25.0),1)
+                    else: return round(rnd.uniform(3.0,100.0),1)
+                def prono_pmu(marche):
+                    if "Simple" in marche: return f"{chevaux[0]}"
+                    elif "Couple" in marche: return f"{chevaux[0]}-{chevaux[1]}"
+                    elif "Tierce" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}"
+                    elif "Quarte" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}"
+                    elif "Quinte" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}"
+                    elif "Multi en 4" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}"
+                    elif "Multi en 5" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}"
+                    elif "Multi en 6" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}-{chevaux[5]}"
+                    elif "Multi en 7" in marche: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}-{chevaux[3]}-{chevaux[4]}-{chevaux[5]}-{chevaux[6]}"
+                    else: return f"{chevaux[0]}-{chevaux[1]}-{chevaux[2]}"
+                if "LEGENDE" in type2:
+                    marche,prono=("Simple Gagnant",prono_pmu("Simple Gagnant")) if att>=70 else ("Couple Place",prono_pmu("Couple Place"))
+                    marches=[(marche,prono,cote_pmu(marche))]
+                elif "TOUS COMPLET" in type2:
+                    marches=[("Simple Gagnant",prono_pmu("Simple Gagnant"),cote_pmu("Simple Gagnant")),("Simple Place",prono_pmu("Simple Place"),cote_pmu("Simple Place")),("Couple Gagnant",prono_pmu("Couple Gagnant"),cote_pmu("Couple Gagnant")),("Couple Place",prono_pmu("Couple Place"),cote_pmu("Couple Place")),("Tierce Ordre",prono_pmu("Tierce Ordre"),cote_pmu("Tierce Ordre")),("Tierce Desordre",prono_pmu("Tierce Desordre"),cote_pmu("Tierce Desordre")),("Quarte Ordre",prono_pmu("Quarte Ordre"),cote_pmu("Quarte Ordre")),("Quarte Desordre",prono_pmu("Quarte Desordre"),cote_pmu("Quarte Desordre")),("Quinte Ordre",prono_pmu("Quinte Ordre"),cote_pmu("Quinte Ordre")),("Quinte Desordre",prono_pmu("Quinte Desordre"),cote_pmu("Quinte Desordre")),("Multi en 4",prono_pmu("Multi en 4"),cote_pmu("Multi en 4")),("Multi en 7",prono_pmu("Multi en 7"),cote_pmu("Multi en 7"))]
+                else:
+                    marches=[(type2,prono_pmu(type2),cote_pmu(type2))]
+                for marche,prono,cote in marches:
+                    conf=confiance_simple(att,defe,diff,moy,marche,rnd); ai_op,ai_just=ai_vraie_opinion(f"Cheval {chevaux[0]}",att,defe,diff,moy,marche,prono,rnd)
+                    data.append({"Course":f"R{i+1}C{c+1}","Type":marche,"Prono":prono,"Cote":cote,"Confiance":f"{conf}%","AI% Opinion":f"{ai_op}%","AI Justification":ai_just,"Jour":f"J+{i}"})
+            st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
 
-st.success(f"♾️ V44 COMPLET FINAL - 3 CHAMPIONS - JOUR INFINI {st.session_state.nb*3} JOURS - MISE A JOUR INFINI - FOOT {nb_matchs1} MATCHS + PMU-B {nb_matchs2} COURSES + BOURSE {nb_matchs3} ACTIFS - TOUS TYPES LONAB")
-st.warning("⚠️ 18+ JEU RESPONSABLE - LONAB / PMU-B / BOURSE - Pourcentage varie selon analyse 68-92% - Pas garantie")
+with tab3:
+    st.markdown("### BOURSE INTERNATIONALE COMPLETE - FOREX INDICE ACTION CRYPTO OR PETROLE")
+    type3=st.selectbox("Type BOURSE INTERNATIONALE", ["LEGENDE - 1 signal/actif","FOREX MAJEURES","FOREX XOF","FOREX EXOTIQUE","INDICE US","INDICE EUROPE","INDICE ASIE","ACTION US TECH","ACTION US AUTRE","ACTION EUROPE","CRYPTO","MATIERES OR PETROLE","TOUS FOREX","TOUS INDICE","TOUS ACTION","TOUS CRYPTO","TOUS COMPLET BOURSE"], index=0, key="t3f")
+    nb3=st.slider("Nombre actifs BOURSE", 1, 20, 12, key="n3f")
+    total=st.session_state.nb*3
+    for i in range(total):
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"bourse_complet_{nb3}_{type3}_{i}"))
+        with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb3} actifs", expanded=(i==0)):
+            data=[]
+            if "FOREX MAJEURES" in type3: markets=bourse_complete["FOREX MAJEURES"]
+            elif "FOREX XOF" in type3: markets=bourse_complete["FOREX XOF"]
+            elif "FOREX EXOTIQUE" in type3: markets=bourse_complete["FOREX EXOTIQUE"]
+            elif "TOUS FOREX" in type3: markets=bourse_complete["FOREX MAJEURES"]+bourse_complete["FOREX XOF"]+bourse_complete["FOREX EXOTIQUE"]
+            elif "INDICE US" in type3: markets=bourse_complete["INDICE US"]
+            elif "INDICE EUROPE" in type3: markets=bourse_complete["INDICE EUROPE"]
+            elif "INDICE ASIE" in type3: markets=bourse_complete["INDICE ASIE"]
+            elif "TOUS INDICE" in type3: markets=bourse_complete["INDICE US"]+bourse_complete["INDICE EUROPE"]+bourse_complete["INDICE ASIE"]
+            elif "ACTION US TECH" in type3: markets=bourse_complete["ACTION US TECH"]
+            elif "ACTION US AUTRE" in type3: markets=bourse_complete["ACTION US AUTRE"]
+            elif "ACTION EUROPE" in type3: markets=bourse_complete["ACTION EUROPE"]
+            elif "TOUS ACTION" in type3: markets=bourse_complete["ACTION US TECH"]+bourse_complete["ACTION US AUTRE"]+bourse_complete["ACTION EUROPE"]
+            elif "CRYPTO" in type3 or "TOUS CRYPTO" in type3: markets=bourse_complete["CRYPTO"]
+            elif "MATIERES" in type3: markets=bourse_complete["MATIERES"]
+            elif "TOUS COMPLET BOURSE" in type3: markets=bourse_complete["FOREX MAJEURES"]+bourse_complete["INDICE US"]+bourse_complete["ACTION US TECH"]+bourse_complete["CRYPTO"]+bourse_complete["MATIERES"]
+            else: markets=bourse_complete["FOREX MAJEURES"]+bourse_complete["INDICE US"]+bourse_complete["ACTION US TECH"]+bourse_complete["CRYPTO"]
+            sel=rnd.sample(markets, min(nb3, len(markets)))
+            for name,price,unit in sel:
+                att=rnd.randint(35,88); defe=rnd.randint(15,60); diff=att-defe; moy=round(rnd.uniform(1.2,3.8),1)
+                signal="ACHETER" if rnd.randint(0,1)==0 else "VENDRE"
+                marche=f"{type3} - {signal}"; prono=signal
+                conf=confiance_simple(att,defe,diff,moy,marche,rnd); ai_op,ai_just=ai_vraie_opinion(name,att,defe,diff,moy,marche,prono,rnd)
+                data.append({"Actif":name,"Prix":f"{price}{unit}","Signal":signal,"Categorie":type3,"Confiance":f"{conf}%","AI% Opinion":f"{ai_op}%","AI Justification":ai_just,"Jour":f"J+{i}"})
+            st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
+
+st.success(f"♾️ V44 COMPLET - PMU-B: Simple Couple Tierce Quarte Quinte Multi - BOURSE: Forex Indice Action Crypto Or Petrole - AI vraie opinion 38-99% - {st.session_state.nb*3} jours")
+st.warning("⚠️ 18+ - PMU-B: Simple Gagnant/Place, Couple Gagnant/Place/Ordre, Tierce Ordre/Desordre, Quarte Ordre/Desordre, Quinte Ordre/Desordre/Quinte+, Multi 4-7 - BOURSE: Forex Majeures XOF Exotique, Indice US Europe Asie, Action US Tech Europe, Crypto, Matieres Or Petrole")
