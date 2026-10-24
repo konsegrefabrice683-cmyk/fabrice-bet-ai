@@ -1,8 +1,8 @@
-import streamlit as st, pandas as pd, random, hashlib, requests
+import streamlit as st, pandas as pd, random, hashlib, requests, re
 from datetime import datetime, timedelta
 from PIL import Image
 
-st.set_page_config(page_title="FABRICE BET AI - COMPLET PMU-B BOURSE", layout="wide", page_icon="🔥")
+st.set_page_config(page_title="FABRICE BET AI - V44 FINAL CORRIGE", layout="wide", page_icon="🔥")
 st.markdown("<style>#MainMenu,footer,header{display:none} .stButton>button{font-weight:bold}</style>", unsafe_allow_html=True)
 
 @st.cache_data(ttl=60)
@@ -28,7 +28,7 @@ def confiance_simple(attaque, defense, diff, moy_buts, marche, rnd):
     elif "Double Chance" in marche or "Simple Gagnant" in marche: base+=rnd.randint(6,10)
     elif "Over 0.5" in marche: base+=rnd.randint(8,13)
     base+=rnd.randint(-5,5)
-    if base<45: base=45+rnd.randint(0,5)
+    if base<38: base=38+rnd.randint(0,7)
     if base>92: base=92-rnd.randint(0,3)
     return base
 
@@ -46,17 +46,19 @@ def ai_vraie_opinion(team, attaque, defense, diff, moy_buts, marche, prono, rnd)
     opinion=int(score_att*0.35 + score_diff*0.30 + score_marche*0.20 + forme*0.08 + histo*0.07 + rnd.randint(-8,8))
     if opinion<5: opinion=rnd.randint(8,25)
     if opinion>99: opinion=rnd.randint(92,99)
-    if opinion<=45: just=f"AI {opinion}% - Att {attaque}% faible + Diff {diff} serre + {marche} difficile - OPINION: RISQUE ELEVE"
-    elif opinion<=56: just=f"AI {opinion}% - Att {attaque}% moyen + Match serre - OPINION: RISQUE - Preferer marche plus sur"
+    if opinion<=45: just=f"AI {opinion}% - Att {attaque}% faible + Diff {diff} serre + {marche} difficile - OPINION: RISQUE ELEVE - NE PAS JOUER"
+    elif opinion<=56: just=f"AI {opinion}% - Att {attaque}% moyen + Match serre - OPINION: RISQUE - Preferer Double Chance"
     elif opinion<=70: just=f"AI {opinion}% - Att {attaque}% correct Diff {diff} - OPINION: MOYEN"
     elif opinion<=84: just=f"AI {opinion}% - Att {attaque}% fort Diff {diff} - OPINION: BON"
     else: just=f"AI {opinion}% - Att {attaque}% tres fort Diff {diff} - OPINION: TRES BON"
     return opinion, just
 
+# CORRIGE - PLUS D'ERREUR AttributeError - utilise .map au lieu de .applymap
 def style_vert_rouge(df):
     def color_val(v):
         try:
-            txt=str(v); n=int(''.join(filter(str.isdigit, txt.split('%')[0]))[:3] or 0)
+            m=re.search(r'(\d+)', str(v))
+            n=int(m.group(1)) if m else 0
             if n<=45: return 'background-color: #8B0000; color: white; font-weight: bold'
             elif n<=56: return 'background-color: #FF0000; color: white; font-weight: bold'
             elif n<=69: return 'background-color: #FFA500; color: black'
@@ -64,8 +66,9 @@ def style_vert_rouge(df):
             elif n<=84: return 'background-color: #90EE90; color: black; font-weight: bold'
             else: return 'background-color: #00FF00; color: black; font-weight: bold'
         except: return ''
-    cols=[c for c in ['Confiance','AI% Opinion','AI%'] if c in df.columns]
-    return df.style.applymap(color_val, subset=cols) if cols else df
+    cols=[c for c in ['Confiance','AI% Opinion'] if c in df.columns]
+    # CORRECTION V44 - Pandas 2.0+ utilise .map
+    return df.style.map(color_val, subset=cols) if cols else df.style
 
 fixtures=[
     ("Crystal Palace vs Newcastle","PL",48,55,2.4),("Hull City vs Brentford","PL",42,38,2.1),
@@ -82,7 +85,6 @@ fixtures=[
     ("Sonabel vs Vitesse","Fasofoot",48,15,1.6),("ASFA vs EFO","Fasofoot",55,30,2.2),("Salitas vs Rahimo","Fasofoot",50,25,2.0),
 ]
 
-# BOURSE INTERNATIONALE COMPLETE
 bourse_complete={
     "FOREX MAJEURES":[("EUR/USD",1.0850,""),("GBP/USD",1.2950,""),("USD/JPY",149.20,""),("USD/CHF",0.8950,""),("AUD/USD",0.6650,""),("NZD/USD",0.6150,"")],
     "FOREX XOF":[("USD/XOF",605.50," XOF"),("EUR/XOF",657.00," XOF"),("GBP/XOF",785.20," XOF")],
@@ -98,8 +100,8 @@ bourse_complete={
 }
 
 jours_fr=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
-st.title("FABRICE BET AI - COMPLET PMU-B + BOURSE INTERNATIONALE")
-st.caption(f"PMU-B: Simple Couple Tierce Quarte Quinte Multi + Bourse: Forex Indice Action Crypto Or Petrole - AI 38-99% vraie opinion - {datetime.now():%d/%m/%Y}")
+st.title("FABRICE BET AI - V44 FINAL CORRIGE")
+st.caption(f"V44 CORRIGE - AI vraie opinion 38-99% - PMU-B Quinte Quarte Tierce Multi - Bourse Forex Indice Action Crypto - {datetime.now():%d/%m/%Y}")
 
 col1,col2,col3,col4=st.columns(4)
 with col1:
@@ -118,12 +120,12 @@ c1.markdown("🟥 **38-45% DANGER**"); c2.markdown("🟥 **46-56% RISQUE**"); c3
 tab1,tab2,tab3=st.tabs(["CHAMPION 1 - FOOT","CHAMPION 2 - PMU-B COMPLET","CHAMPION 3 - BOURSE INTERNATIONALE"])
 
 with tab1:
-    st.markdown("### FOOT - TOUS LES MARCHES LONAB")
+    st.markdown("### FOOT - LONAB COMPLET")
     type1=st.selectbox("Type FOOT", ["LEGENDE - 1 marche/match Anti repetition","1X2","Double Chance","Score Exact","Over Under 0.5-5.5","BTTS GG/NG","BTTS+Over","Cartons Jaune/Rouge","Expulsion Oui/Non","Corners Over/Under","Mi-Temps / MT-Fin","TOUS COMPLET 12 marches/match"], index=0, key="t1f")
     nb1=st.slider("Nombre matchs FOOT", 1, 20, 12, key="n1f")
     total=st.session_state.nb*3
     for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"foot_complet_{nb1}_{type1}_{i}"))
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"foot_v44_{nb1}_{type1}_{i}"))
         with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb1} matchs", expanded=(i==0)):
             data=[]; matches=rnd.sample(fixtures, min(nb1, len(fixtures)))
             for team,lig,att,defe,moy in matches:
@@ -142,13 +144,13 @@ with tab1:
             st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
 
 with tab2:
-    st.markdown("### PMU-B COMPLET - SIMPLE COUPLE TIERCE QUARTE QUINTE MULTI")
+    st.markdown("### PMU-B COMPLET - TOUT: SIMPLE COUPLE TIERCE QUARTE QUINTE MULTI")
     type2=st.selectbox("Type PMU-B COMPLET", ["LEGENDE - 1 prono/course","Simple Gagnant","Simple Place","Couple Gagnant","Couple Place","Couple Ordre","Tierce Ordre","Tierce Desordre","Quarte Ordre","Quarte Desordre","Quinte Ordre","Quinte Desordre","Quinte+","Multi en 4","Multi en 5","Multi en 6","Multi en 7","TOUS COMPLET - 12 pronos/course"], index=0, key="t2f")
     nb2=st.slider("Nombre courses PMU-B", 1, 20, 12, key="n2f")
     total=st.session_state.nb*3
     for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"pmub_complet_{nb2}_{type2}_{i}"))
-        with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb2} courses PMU-B", expanded=(i==0)):
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"pmub_v44_{nb2}_{type2}_{i}"))
+        with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb2} courses", expanded=(i==0)):
             data=[]
             for c in range(nb2):
                 chevaux=rnd.sample(list(range(1,21)),10); att=rnd.randint(35,88); defe=rnd.randint(15,60); diff=att-defe; moy=round(rnd.uniform(1.5,3.5),1)
@@ -194,12 +196,12 @@ with tab2:
             st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
 
 with tab3:
-    st.markdown("### BOURSE INTERNATIONALE COMPLETE - FOREX INDICE ACTION CRYPTO OR PETROLE")
-    type3=st.selectbox("Type BOURSE INTERNATIONALE", ["LEGENDE - 1 signal/actif","FOREX MAJEURES","FOREX XOF","FOREX EXOTIQUE","INDICE US","INDICE EUROPE","INDICE ASIE","ACTION US TECH","ACTION US AUTRE","ACTION EUROPE","CRYPTO","MATIERES OR PETROLE","TOUS FOREX","TOUS INDICE","TOUS ACTION","TOUS CRYPTO","TOUS COMPLET BOURSE"], index=0, key="t3f")
+    st.markdown("### BOURSE INTERNATIONALE - FOREX INDICE ACTION CRYPTO OR PETROLE")
+    type3=st.selectbox("Type BOURSE", ["LEGENDE - 1 signal/actif","FOREX MAJEURES","FOREX XOF","FOREX EXOTIQUE","INDICE US","INDICE EUROPE","INDICE ASIE","ACTION US TECH","ACTION US AUTRE","ACTION EUROPE","CRYPTO","MATIERES OR PETROLE","TOUS FOREX","TOUS INDICE","TOUS ACTION","TOUS CRYPTO","TOUS COMPLET BOURSE"], index=0, key="t3f")
     nb3=st.slider("Nombre actifs BOURSE", 1, 20, 12, key="n3f")
     total=st.session_state.nb*3
     for i in range(total):
-        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"bourse_complet_{nb3}_{type3}_{i}"))
+        d=datetime.now()+timedelta(days=i); nom=jours_fr[d.weekday()]; rnd=random.Random(seed(d,f"bourse_v44_{nb3}_{type3}_{i}"))
         with st.expander(f"{'AUJOURDHUI' if i==0 else f'J+{i}'} - {nom} {d.strftime('%d/%m/%Y')} - {nb3} actifs", expanded=(i==0)):
             data=[]
             if "FOREX MAJEURES" in type3: markets=bourse_complete["FOREX MAJEURES"]
@@ -214,7 +216,7 @@ with tab3:
             elif "ACTION US AUTRE" in type3: markets=bourse_complete["ACTION US AUTRE"]
             elif "ACTION EUROPE" in type3: markets=bourse_complete["ACTION EUROPE"]
             elif "TOUS ACTION" in type3: markets=bourse_complete["ACTION US TECH"]+bourse_complete["ACTION US AUTRE"]+bourse_complete["ACTION EUROPE"]
-            elif "CRYPTO" in type3 or "TOUS CRYPTO" in type3: markets=bourse_complete["CRYPTO"]
+            elif "CRYPTO" in type3: markets=bourse_complete["CRYPTO"]
             elif "MATIERES" in type3: markets=bourse_complete["MATIERES"]
             elif "TOUS COMPLET BOURSE" in type3: markets=bourse_complete["FOREX MAJEURES"]+bourse_complete["INDICE US"]+bourse_complete["ACTION US TECH"]+bourse_complete["CRYPTO"]+bourse_complete["MATIERES"]
             else: markets=bourse_complete["FOREX MAJEURES"]+bourse_complete["INDICE US"]+bourse_complete["ACTION US TECH"]+bourse_complete["CRYPTO"]
@@ -227,5 +229,5 @@ with tab3:
                 data.append({"Actif":name,"Prix":f"{price}{unit}","Signal":signal,"Categorie":type3,"Confiance":f"{conf}%","AI% Opinion":f"{ai_op}%","AI Justification":ai_just,"Jour":f"J+{i}"})
             st.dataframe(style_vert_rouge(pd.DataFrame(data)), use_container_width=True, hide_index=True)
 
-st.success(f"♾️ V44 COMPLET - PMU-B: Simple Couple Tierce Quarte Quinte Multi - BOURSE: Forex Indice Action Crypto Or Petrole - AI vraie opinion 38-99% - {st.session_state.nb*3} jours")
-st.warning("⚠️ 18+ - PMU-B: Simple Gagnant/Place, Couple Gagnant/Place/Ordre, Tierce Ordre/Desordre, Quarte Ordre/Desordre, Quinte Ordre/Desordre/Quinte+, Multi 4-7 - BOURSE: Forex Majeures XOF Exotique, Indice US Europe Asie, Action US Tech Europe, Crypto, Matieres Or Petrole")
+st.success(f"V44 CORRIGE - Sans erreur applymap - AI vraie opinion 38-99% - {st.session_state.nb*3} jours")
+st.warning("PMU-B: Simple Gagnant/Place Couple Gagnant/Place/Ordre Tierce Ordre/Desordre Quarte Ordre/Desordre Quinte Ordre/Desordre/Quinte+ Multi 4-7 - BOURSE: Forex Maj XOF Exotique Indice US Europe Asie Action US Tech Europe Crypto Or Petrole")
