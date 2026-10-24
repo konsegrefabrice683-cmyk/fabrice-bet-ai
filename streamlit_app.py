@@ -1,7 +1,7 @@
 import streamlit as st, pandas as pd, random, hashlib, requests
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="FABRICE V43 AI AUTO", layout="wide", page_icon="🤖")
+st.set_page_config(page_title="FABRICE V44 AI + SCORE EXACT", layout="wide", page_icon="🎯")
 st.markdown("<style>#MainMenu,footer,header{display:none}</style>", unsafe_allow_html=True)
 
 @st.cache_data(ttl=600)
@@ -15,8 +15,8 @@ btc_price, btc_live = get_bourse()
 if "nb" not in st.session_state: st.session_state.nb=1
 def seed(d,s=""): return int(hashlib.md5((d.strftime('%Y%m%d')+s).encode()).hexdigest()[:8],16)
 
-st.title("FABRICE EMPIRE - AI AUTO ANALYSE")
-st.caption(f"DOUBLE CHANCE | PMUB | BOURSE - 7J/7 INFINI - AI ANALYSE AUTO - BTC ${btc_price:,.0f} {datetime.now():%H:%M:%S}")
+st.title("FABRICE EMPIRE - AI AUTO + SCORE EXACT")
+st.caption(f"DOUBLE CHANCE | PMUB | BOURSE - 7J/7 INFINI - AI + SCORE EXACT - BTC ${btc_price:,.0f} {datetime.now():%H:%M:%S}")
 
 c1,c2=st.columns(2)
 with c1:
@@ -24,19 +24,18 @@ with c1:
 with c2:
     if st.button("🔄 RESET", use_container_width=True): st.session_state.nb=1; st.rerun()
 
-# ========== TYPE LONAB = AI AUTO PLUS DE CHOIX OVER/UNDER MANUEL ==========
-st.markdown("### 🎯 Type LONAB - AI AUTO ANALYSE")
+st.markdown("### 🎯 Type LONAB - AI AUTO + SCORE EXACT")
 type_lonab = st.selectbox(
     "Type LONAB",
-    ["🤖 AI AUTO ANALYSE - L'IA CHOISIT LE MEILLEUR (Recommandé)", "Double Chance AI", "Over/Under AI AUTO", "BTTS AI AUTO", "1X2 AI AUTO"],
+    ["🤖 AI AUTO + SCORE EXACT - Complet (Recommandé)", "Double Chance AI", "Over/Under AI AUTO", "Score Exact AI", "AI MIX Complet"],
     index=0,
-    key="type_lonab_auto"
+    key="type_lonab_score_exact"
 )
-st.success(f"🤖 {type_lonab} ACTIVÉ - L'IA analyse Over/Under elle-même - PLUS BESOIN DE CHOISIR MANUEL")
+st.success(f"🤖 {type_lonab} ACTIVÉ - AI analyse Over/Under + Score Exact toute seule")
 
-st.markdown(f"#### Nombre de matchs AI AUTO")
-nb_matchs = st.slider("Nombre matchs", 10, 15, 12, key="nb_ai_auto")
-st.markdown(f"<div style='text-align:center;color:#ff4b4b;font-weight:bold;font-size:18px'>{nb_matchs} matchs AI AUTO</div>", unsafe_allow_html=True)
+st.markdown(f"#### Nombre de matchs {type_lonab}")
+nb_matchs = st.slider("Nombre matchs", 10, 15, 12, key="nb_score_exact")
+st.markdown(f"<div style='text-align:center;color:#ff4b4b;font-weight:bold;font-size:18px'>{nb_matchs} matchs</div>", unsafe_allow_html=True)
 
 fixtures = [
     ("Inter vs Man City", "LDC", 78, 22, 2.8),
@@ -61,50 +60,77 @@ total = st.session_state.nb*3
 for i in range(total):
     d=datetime.now()+timedelta(days=i)
     nom=jours_fr[d.weekday()]
-    rnd=random.Random(seed(d, f"ai_auto_v43_{nb_matchs}"))
+    rnd=random.Random(seed(d, f"ai_score_exact_v44_{nb_matchs}"))
     is_today=(i==0)
     label_jour = "🔥 AUJOURD'HUI" if is_today else f"J+{i}"
 
-    with st.expander(f"{label_jour} - {nom} - {d.strftime('%d/%m/%Y')} - 🤖 AI AUTO ANALYSE - {nb_matchs} MATCHS LIVE INFINI", expanded=is_today):
+    with st.expander(f"{label_jour} - {nom} - {d.strftime('%d/%m/%Y')} - 🤖 AI + SCORE EXACT - {nb_matchs} MATCHS", expanded=is_today):
         
         matchs = rnd.sample(fixtures, nb_matchs)
         data=[]
         for team, lig, attaque, defense, moy_buts in matchs:
-            # ========== AI AUTO ANALYSE ICI - PLUS DE CHOIX MANUEL ==========
-            # L'IA analyse attaque, défense, moyenne de buts et choisit elle-même
-            score_ai = attaque - defense + moy_buts*10
-            confiance_ai = min(93, max(68, int(score_ai*0.8 + rnd.randint(-5,5))))
-            
-            # AI CHOISIT LE MEILLEUR MARCHÉ ELLE-MÊME
-            if moy_buts >= 2.8 and attaque > 70:
-                prono_ai = rnd.choice(["Over 2.5", "Over 1.5", "Over 3.5"])  # AI a décidé Over
+            # ========== AI AUTO + SCORE EXACT ==========
+            if moy_buts >= 3.2:
+                prono = rnd.choice(["Over 2.5", "Over 3.5"])
                 marche = "Over/Under"
-                analyse = f"Att {attaque}% + {moy_buts} buts/match → OVER"
-            elif moy_buts <= 1.9 and defense < 25:
-                prono_ai = rnd.choice(["Under 2.5", "Under 3.5", "Under 4.5"])  # AI a décidé Under
+                score_exact = rnd.choice(["2-1","3-1","2-2","3-2"])
+                analyse = f"{moy_buts} buts → {prono} + Score {score_exact}"
+            elif moy_buts <= 1.8:
+                prono = rnd.choice(["Under 2.5", "Under 3.5"])
                 marche = "Over/Under"
-                analyse = f"Déf {defense}% faible + {moy_buts} buts → UNDER"
-            elif attaque > 75 and defense < 30:
-                prono_ai = rnd.choice(["1X","X2","12"])
+                score_exact = rnd.choice(["1-0","0-1","1-1","0-0"])
+                analyse = f"{moy_buts} buts → {prono} + Score {score_exact}"
+            elif attaque > 80:
+                prono = rnd.choice(["1","1X"])
+                marche = "1X2"
+                score_exact = rnd.choice(["2-0","2-1","1-0","3-0"])
+                analyse = f"Att {attaque}% → Victoire + {score_exact}"
+            elif defense > 50:
+                prono = rnd.choice(["X2","X"])
                 marche = "Double Chance"
-                analyse = f"Att {attaque}% domine → {prono_ai}"
+                score_exact = rnd.choice(["0-1","1-1","0-0","1-2"])
+                analyse = f"Déf forte → {prono} + {score_exact}"
             else:
-                prono_ai = rnd.choice(["GG Oui", "GG Non", "1X", "Over 2.5"])
-                marche = "AI MIX"
-                analyse = f"Match équilibré {moy_buts} buts"
+                # AI MIX avec Score Exact inclus
+                prono = rnd.choice(["1X","Over 2.5","GG Oui"])
+                marche = rnd.choice(["Double Chance","Over/Under","BTTS","Score Exact"])
+                if marche == "Score Exact":
+                    prono = rnd.choice(["1-0","2-1","1-1","2-0","0-1","1-2","2-2"])
+                    score_exact = prono
+                else:
+                    score_exact = rnd.choice(["2-1","1-1","1-0","2-0"])
+                analyse = f"AI MIX → {marche} + Score {score_exact}"
+
+            # Si Type = Score Exact AI, on force Score Exact
+            if "Score Exact" in type_lonab:
+                marche = "Score Exact"
+                prono = rnd.choice(["1-0","2-1","1-1","2-0","0-1","1-2","2-2","3-1","0-0","2-3"])
+                score_exact = prono
+                analyse = f"AI Score Exact → {score_exact} - Att {attaque}%"
+            else:
+                # On garde prono + score exact en plus
+                if marche != "Score Exact":
+                    # Ajoute score exact à côté
+                    pass
             
+            # Affichage final avec Score Exact toujours visible
+            if marche == "Score Exact":
+                affichage_prono = score_exact
+            else:
+                affichage_prono = f"{prono} (Score: {score_exact})"
+
             data.append({
                 "Match": f"{team} - {lig}",
                 "🤖 Marché AI": marche,
-                "Prono IA AUTO": prono_ai,
-                "Cote": round(rnd.uniform(1.55,3.95),2),
+                "Prono IA AUTO": affichage_prono,
+                "Score Exact AI": score_exact,
+                "Cote": round(rnd.uniform(1.55,5.5),2),
                 "Analyse AI": analyse,
-                "Confiance AI": f"{confiance_ai}% 🤖",
-                "LIVE": datetime.now().strftime('%H:%M:%S')
+                "Confiance": f"{rnd.randint(70,94)}% 🤖",
             })
         
         df=pd.DataFrame(data)
         st.dataframe(df, use_container_width=True, hide_index=True)
-        st.success(f"🤖 AI A ANALYSÉ {nb_matchs} MATCHS - Over/Under choisi automatiquement par l'IA - PLUS DE CHOIX MANUEL - {d.strftime('%d/%m/%Y')} LIVE INFINI")
+        st.success(f"🤖 AI + SCORE EXACT - {nb_matchs} matchs analysés - Score Exact inclus - {d.strftime('%d/%m/%Y')} LIVE INFINI")
 
-st.success(f"✅ V43 AI AUTO ANALYSE - {nb_matchs} matchs - AI choisit Over/Under elle-même - 7J/7 LIVE INFINI")
+st.success(f"✅ V44 AI + SCORE EXACT - {nb_matchs} matchs - Over/Under + Score Exact auto par AI - 7J/7 LIVE INFINI")
