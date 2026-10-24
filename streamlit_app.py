@@ -113,14 +113,18 @@ with tab1:
             matchs = random.sample(fixtures_30, NB_MATCHS_FIXE)
             data = []
             for m in matchs:
-                if type_paris == "1X2": prono = random.choice(["1", "X", "2"])
-                elif type_paris == "Double Chance": prono = random.choice(["1X", "X2", "12"])
+                if type_paris == "1X2": 
+                    prono = random.choice(["1", "X", "2"])
+                elif type_paris == "Double Chance": 
+                    prono = random.choice(["1X", "X2", "12"])
                 elif "Over" in type_paris: 
                     ligne = random.choice([0.5, 1.5, 2.5, 3.5, 4.5])
                     choix = random.choice(["Over", "Under"])
                     prono = f"{choix} {ligne}"
-                elif "BTTS" in type_paris: prono = random.choice(["GG Oui", "GG Non"])
-                else: prono = random.choice(["1-0", "2-1", "1-1", "2-0"])
+                elif "BTTS" in type_paris: 
+                    prono = random.choice(["GG Oui", "GG Non"])
+                else: 
+                    prono = random.choice(["1-0", "2-1", "1-1", "2-0"])
                 data.append({"Match": m, "Prono": prono, "Cote": round(random.uniform(1.45,3.20),2), "IA": "🔥 SÛR", "Confiance": f"{random.randint(65,82)}%"})
             st.dataframe(
                 pd.DataFrame(data), 
@@ -138,27 +142,41 @@ with tab1:
 with tab2:
     st.markdown("### 🐴 PMU-B - JOURNAL HIPPIQUE VRAI COMME TON IMAGE")
     type_pmu = st.selectbox("🎯 Type PMU-B LONAB", ["Quinté+", "Quarté", "Tiercé", "Couplé Gagnant", "Couplé Placé", "Trio", "Multi / 2sur4"], key="pmu_v32")
-    
     for i in range(total_jours):
         d = datetime.now() + timedelta(days=i)
         nom = jours_fr[d.weekday()]
         cotes_paris, cotes_tierce, presse, aptitudes, favoris, masse = generate_journal()
         if d.weekday()==0: st.markdown(f"#### 🐴 SEMAINE {(i//7)+1} - {type_pmu}")
-        
         with st.expander(f"🐴 {type_pmu} - {nom} {d.strftime('%d/%m/%Y')} - Masse {masse}", expanded=(i==0)):
+            if type_pmu == "Quinté+":
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 QUINTÉ+ DU JOUR: {favoris[0]} - {favoris[1]} - {favoris[2]} - {favoris[3]} - {favoris[4]} - {favoris[5]}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 BASE: {favoris[0]}-{favoris[1]} | CHAMP {favoris[0]}-{favoris[1]} X {'-'.join(map(str, favoris[2:6]))} | Bonus 4 & 3 | Flexi 50% = 6€**")
+            elif type_pmu == "Quarté":
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 QUARTÉ: {favoris[0]} - {favoris[1]} - {favoris[2]} - {favoris[3]}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 Base {favoris[0]} | {favoris[0]} X {'-'.join(map(str, favoris[1:5]))} | Rapport ordre 500€**")
+            elif type_pmu == "Tiercé":
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 TIERCÉ: {favoris[0]} - {favoris[1]} - {favoris[2]}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 Ordre 300€ | Désordre 50€**")
+            elif "Couplé" in type_pmu:
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 {type_pmu.upper()}: {favoris[0]} - {favoris[1]}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 Ordre obligatoire**")
+            elif type_pmu == "Trio":
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 TRIO: {favoris[0]} - {favoris[1]} - {favoris[2]}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 Ordre obligatoire**")
+            else:
+                st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:10px;text-align:center;font-size:22px;font-weight:bold;">🎯 MULTI / 2sur4: {"-".join(map(str, favoris[:7]))}</div>', unsafe_allow_html=True)
+                st.success(f"**🎯 2sur4: {favoris[0]}-{favoris[1]}**")
+            st.divider()
             st.markdown(f"**💰 GHOST DE BEAULIEU | Masse à partager : {masse} | R1 C3 - 15h15 - Attelé 2700m | {type_pmu}**")
-            
             df1 = pd.DataFrame([cotes_paris], columns=[str(k) for k in range(1,17)], index=["PARIS"])
             st.dataframe(df1, use_container_width=True)
             df2 = pd.DataFrame([cotes_tierce], columns=[str(k) for k in range(1,17)], index=["TIERCÉ"])
             st.dataframe(df2, use_container_width=True)
-            
             st.markdown("#### 📰 PRONOSTICS PRESSE")
             data_p = []
             for j, pr in presse.items():
                 data_p.append({"JOURNAL": j, "PRONO": " - ".join(map(str, pr))})
             st.dataframe(pd.DataFrame(data_p), use_container_width=True, hide_index=True)
-            
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("#### APTITUDES")
@@ -171,31 +189,15 @@ with tab2:
                 st.markdown("**ENTRAINEURS EN FORME:** FH. GRAFFARD - S. WATTEL - N. PERRET")
                 st.markdown("**JOCKEYS EN FORME:** M. BARZALONA - M. GRANDIN - M. GUYON")
                 st.markdown(f"**FAVORIS:** {' - '.join(map(str, favoris))}")
-            
             st.markdown("#### CLASSEMENT")
             c1_, c2_, c3_ = st.columns(3)
             with c1_: st.markdown("**SECONDES CHANCES**\n\n1 - AGILE\n10 - BRITANIA\n7 - AME D'OR\n9 - MARINALEDA")
             with c2_: st.markdown("**OUTSIDERS**\n\n4 - AMERICAN GLORY\n12 - FOXEY LADY\n16 - GAREYA")
             with c3_: st.markdown("**GROS OUTSIDERS**\n\n14 - TEARDROP EXPLODES\n5 - HASAPIKO\n11 - GHOST DE BEAULIEU")
-            
-            st.divider()
-            if type_pmu == "Quinté+":
-                st.success(f"**🎯 QUINTÉ+ ANALYSE VRAIE:** Base {favoris[0]}-{favoris[1]} | Champ {favoris[0]}-{favoris[1]} X {'-'.join(map(str, favoris[2:6]))} | Bonus 4 & 3 | Flexi 50% = 6€")
-            elif type_pmu == "Quarté":
-                st.success(f"**🎯 QUARTÉ:** Base {favoris[0]} | {favoris[0]} X {'-'.join(map(str, favoris[1:5]))} | Rapport ordre 500€")
-            elif type_pmu == "Tiercé":
-                st.success(f"**🎯 TIERCÉ:** {favoris[0]}-{favoris[1]}-{favoris[2]} | Ordre 300€ | Désordre 50€")
-            elif "Couplé" in type_pmu:
-                st.success(f"**🎯 {type_pmu.upper()}:** {favoris[0]}-{favoris[1]} | {'Ordre obligatoire' if 'Gagnant' in type_pmu else 'Dans les 3 premiers, 70% chance'}")
-            elif type_pmu == "Trio":
-                st.success(f"**🎯 TRIO:** {favoris[0]}-{favoris[1]}-{favoris[2]} ordre obligatoire")
-            else:
-                st.success(f"**🎯 MULTI / 2sur4:** Multi en 7: {'-'.join(map(str, favoris[:7]))} | 2sur4: {favoris[0]}-{favoris[1]}")
 
 with tab3:
     st.markdown("### 💹 BOURSE INTERNATIONALE PRO - OÙ ACHETER / VENDRE / FERMER")
     type_bourse = st.selectbox("🎯 Marché", ["Crypto (BTC, ETH, SOL)", "BRVM (SONATEL, SGBS)", "Forex (EUR/USD, GBP/USD)", "Or & Pétrole (XAU, Brent)", "US Actions (AAPL, TSLA, NVDA)"], key="bourse_v32")
-    
     if "Crypto" in type_bourse:
         actifs_list = [("BTC/USD", 80763), ("ETH/USD", 2450), ("SOL/USD", 145), ("BNB/USD", 620)]
     elif "BRVM" in type_bourse:
@@ -206,12 +208,10 @@ with tab3:
         actifs_list = [("XAU/USD - OR", 2680), ("BRENT - PÉTROLE", 116.5), ("SILVER", 32.5), ("GAS", 3.45)]
     else:
         actifs_list = [("AAPL - Apple", 347.72), ("TSLA - Tesla", 372.22), ("NVDA", 142.5), ("MSFT", 445.0)]
-    
     for i in range(total_jours):
         d = datetime.now() + timedelta(days=i)
         nom = jours_fr[d.weekday()]
         if d.weekday()==0: st.markdown(f"#### 💹 SEMAINE {(i//7)+1} - {type_bourse}")
-        
         with st.expander(f"💹 {type_bourse} - {nom} {d.strftime('%d/%m/%Y')} - SIGNAUX", expanded=(i==0)):
             data_b = []
             for actif, prix in actifs_list:
@@ -227,10 +227,8 @@ with tab3:
                     "Quand FERMER MARCHÉ": fermer,
                     "Confiance": f"{random.randint(70,86)}%"
                 })
-            
             df = pd.DataFrame(data_b)
             st.dataframe(df, use_container_width=True, hide_index=True)
-            
             st.markdown("#### 📊 TOP 2 DU JOUR - OÙ CLÔTURER")
             for row in data_b[:2]:
                 if "ACHETER" in row["Signal"]:
@@ -238,4 +236,4 @@ with tab3:
                 elif "VENDRE" in row["Signal"]:
                     st.error(f"**{row['Actif']}: {row['Signal']} à {row['Où ENTRER']} | FERME perte à {row['STOP LOSS (Fermer perte)']} | FERME gain à {row['TP1 (Fermer 50% gain)']} -> {row['Quand FERMER MARCHÉ']}**")
 
-st.success("✅ V32 FINAL - 12 MATCHS FIXES BLOQUÉS | PMU-B JOURNAL HIPPIQUE VRAI | BOURSE OÙ ACHETER/VENDRE/FERMER")
+st.success("✅ V32 FINAL CORRIGÉ - Over/Under AUTO visible + PMU-B Analyse en haut")
