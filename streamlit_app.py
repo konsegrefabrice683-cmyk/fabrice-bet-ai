@@ -104,7 +104,7 @@ NB_MATCHS_FIXE = 12
 
 with tab1:
     st.markdown(f"### 🎯 PARIS SPORTIFS - {NB_MATCHS_FIXE} MATCHS FIXES (BLOQUÉ)")
-    type_paris = st.selectbox("🎯 Type LONAB - PARIS", ["1X2", "Double Chance", "Over/Under 2.5", "BTTS Oui/Non", "Score Exact"], key="paris_v32")
+    type_paris = st.selectbox("🎯 Type LONAB - PARIS", ["1X2", "Double Chance", "Over/Under AUTO", "BTTS Oui/Non", "Score Exact"], key="paris_v32")
     for i in range(total_jours):
         d = datetime.now() + timedelta(days=i)
         nom = jours_fr[d.weekday()]
@@ -115,11 +115,25 @@ with tab1:
             for m in matchs:
                 if type_paris == "1X2": prono = random.choice(["1", "X", "2"])
                 elif type_paris == "Double Chance": prono = random.choice(["1X", "X2", "12"])
-                elif "Over" in type_paris: prono = random.choice(["Over 2.5", "Under 2.5"])
+                elif "Over" in type_paris: 
+                    ligne = random.choice([0.5, 1.5, 2.5, 3.5, 4.5])
+                    choix = random.choice(["Over", "Under"])
+                    prono = f"{choix} {ligne}"
                 elif "BTTS" in type_paris: prono = random.choice(["GG Oui", "GG Non"])
                 else: prono = random.choice(["1-0", "2-1", "1-1", "2-0"])
                 data.append({"Match": m, "Prono": prono, "Cote": round(random.uniform(1.45,3.20),2), "IA": "🔥 SÛR", "Confiance": f"{random.randint(65,82)}%"})
-            st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+            st.dataframe(
+                pd.DataFrame(data), 
+                use_container_width=True, 
+                hide_index=True,
+                column_config={
+                    "Match": st.column_config.TextColumn("Match", width="large"),
+                    "Prono": st.column_config.TextColumn("Prono", width="medium"),
+                    "Cote": st.column_config.NumberColumn("Cote", width="small"),
+                    "IA": st.column_config.TextColumn("IA", width="small"),
+                    "Confiance": st.column_config.TextColumn("Confiance", width="small"),
+                }
+            )
 
 with tab2:
     st.markdown("### 🐴 PMU-B - JOURNAL HIPPIQUE VRAI COMME TON IMAGE")
