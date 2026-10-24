@@ -1,96 +1,60 @@
 import streamlit as st
 import pandas as pd
+import os
 from datetime import datetime, timedelta
+import random
 
-st.set_page_config(page_title="FABRICE BET AI", layout="wide", page_icon="⚽")
-st.title("⚽ FABRICE BET AI")
-st.caption("DOUBLE CHANCE = 10-15 MATCHS | AUTRES = FIXE")
+st.set_page_config(page_title="FABRICE BET AI", page_icon="⚽", layout="wide")
+st.markdown("<style>#MainMenu, footer, header {visibility:hidden;} .stDeployButton{display:none;}</style>", unsafe_allow_html=True)
 
+# LOGO
+for f in ["logo.png", "IMG-20261024-WA5224.jpg"]:
+    if os.path.exists(f):
+        st.image(f, width=220)
+        break
+
+st.markdown("<h1 style='text-align:center; color:#FFD700;'>FABRICE BET AI</h1>", unsafe_allow_html=True)
+st.caption("LONAB - PMUB - BOURSE INTERNATIONALE - 7J/7")
+
+# JOURS INFINIS
 if "nb_jours" not in st.session_state:
     st.session_state.nb_jours = 1
 
-c1, c2 = st.columns(2)
-with c1:
+col1, col2 = st.columns(2)
+with col1:
     if st.button("➕ +3 JOURS", use_container_width=True):
         st.session_state.nb_jours += 3
         st.rerun()
-with c2:
+with col2:
     if st.button("🔄 RESET", use_container_width=True):
         st.session_state.nb_jours = 1
         st.rerun()
 
-type_paris = st.selectbox("🎯 Type LONAB", ["Double Chance", "1X2", "BTTS Oui/Non", "Over/Under", "Score Exact"], index=0)
+# TYPES LONAB COMPLETS
+type_lonab = st.selectbox("🎯 Type LONAB", ["Double Chance (10-15 matchs)", "PMUB (Chevaux)", "Bourse Internationale", "1X2 Direct", "Score Exact", "Under/Over"])
 
-# --- SEULEMENT DOUBLE CHANCE A LE SLIDER 10-15 ---
-if type_paris == "Double Chance":
-    nb_matchs = st.slider("🔢 Nombre de matchs Double Chance", 10, 15, 12, step=1)
-else:
-    nb_matchs = None
+nb_matchs = st.slider("🔢 Nombre de matchs Double Chance", 10, 15, 12)
 
-def get_label(j, d, nb, tp):
-    ds = d.strftime("%d/%m/%Y")
-    if tp == "Double Chance":
-        if j==0: return f"AUJOURD HUI - {ds} - {nb} MATCHS DOUBLE CHANCE"
-        return f"JOUR +{j} - {ds} - {nb} MATCHS DOUBLE CHANCE"
-    else:
-        if j==0: return f"AUJOURD HUI - {ds} - {tp}"
-        return f"JOUR +{j} - {ds} - {tp}"
+# GENERATION 7 JOURS
+jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+start_date = datetime.now()
 
-today = datetime.now()
+for i in range(st.session_state.nb_jours):
+    date_jour = start_date + timedelta(days=i)
+    nom_jour = jours[date_jour.weekday()]
+    titre = f"{nom_jour} - {date_jour.strftime('%d/%m/%Y')} - {nb_matchs} MATCHS - {type_lonab}"
 
-ALL_MATCHS = {
-    "Double Chance": [
-        ["Inter vs Arsenal", "1X", 1.72, "82%", "+7.2%", 92.5, "FEU VERT ULTRA"],
-        ["Inter vs Barca", "X2", 1.45, "79%", "+5.5%", 89.2, "FEU VERT ULTRA"],
-        ["PSG vs EFO", "1X", 1.32, "88%", "+6.5%", 94.1, "FEU VERT ULTRA"],
-        ["Inter vs Man City", "12", 1.52, "76%", "+4.8%", 86.3, "FEU VERT"],
-        ["EFO vs Bayern", "X2", 1.28, "84%", "+5.8%", 88.7, "FEU VERT ULTRA"],
-        ["Real vs Brest", "1X", 1.42, "80%", "+5.0%", 87.5, "FEU VERT ULTRA"],
-        ["ASFA vs EFO", "1X", 1.65, "72%", "+4.2%", 82.1, "FEU VERT"],
-        ["Barca vs PSG", "12", 1.55, "78%", "+5.5%", 85.8, "FEU VERT ULTRA"],
-        ["Man City vs EFO", "1X", 1.38, "86%", "+6.2%", 91.2, "FEU VERT ULTRA"],
-        ["Barca vs Nice", "X2", 1.35, "83%", "+6.0%", 90.5, "FEU VERT ULTRA"],
-        ["Brest vs Nice", "1X", 1.55, "81%", "+8.5%", 89.8, "FEU VERT ULTRA"],
-        ["Mamelodi vs Wiliete", "1X", 1.72, "80%", "+7.2%", 88.2, "FEU VERT ULTRA"],
-        ["Real Madrid vs Barca", "X2", 1.45, "77%", "+5.5%", 86.5, "FEU VERT ULTRA"],
-        ["Bayern vs Dortmund", "1X", 1.28, "85%", "+5.1%", 90.1, "FEU VERT ULTRA"],
-        ["PSG vs Lyon", "1X", 1.22, "89%", "+4.2%", 93.5, "FEU VERT ULTRA"],
-    ],
-    "1X2": [
-        ["Inter vs Arsenal", "1", 2.45, "62%", "+5.5%", 82.3, "FEU VERT"],
-        ["PSG vs EFO", "1", 1.65, "70%", "+7.1%", 88.5, "FEU VERT ULTRA"],
-        ["Man City vs EFO", "1", 1.38, "76%", "+6.2%", 91.2, "FEU VERT ULTRA"],
-    ],
-    "BTTS Oui/Non": [
-        ["Inter vs Arsenal", "BTTS Oui", 1.85, "72%", "+6.2%", 88.1, "FEU VERT ULTRA"],
-        ["PSG vs EFO", "BTTS Non", 1.55, "80%", "+5.8%", 91.1, "FEU VERT ULTRA"],
-    ],
-    "Over/Under": [
-        ["Inter vs Arsenal", "Over 2.5", 1.85, "74%", "+6.8%", 88.5, "FEU VERT ULTRA"],
-        ["PSG vs EFO", "Over 1.5", 1.28, "90%", "+4.8%", 93.5, "FEU VERT ULTRA"],
-    ],
-    "Score Exact": [
-        ["Inter vs Arsenal", "2-1", 8.50, "18%", "+8.5%", 78.2, "FEU VERT"],
-        ["PSG vs EFO", "2-0", 7.20, "20%", "+7.5%", 79.8, "FEU VERT"],
-    ]
-}
-
-for j in range(st.session_state.nb_jours):
-    dj = today + timedelta(days=j)
-    with st.expander(get_label(j, dj, nb_matchs, type_paris), expanded=(j==0)):
-        base_rows = ALL_MATCHS.get(type_paris, ALL_MATCHS["Double Chance"])
-        
-        if type_paris == "Double Chance":
-            rows = base_rows[:nb_matchs]
+    with st.expander(f"📅 AUJOURD'HUI - {titre}" if i==0 else f"📅 {titre}", expanded=(i==0)):
+        # Exemples matchs selon type
+        if "PMUB" in type_lonab:
+            data = {"Course": [f"Course {j+1} - R{random.randint(1,5)}" for j in range(6)], "Prono IA": [f"{random.randint(1,8)}-{random.randint(1,8)}" for _ in range(6)], "Cote": [round(random.uniform(2.5,15),2) for _ in range(6)]}
+        elif "Bourse" in type_lonab:
+            data = {"Match": ["Inter vs Arsenal", "Real vs Brest", "PSG vs EFO", "Man City vs Bayern"], "Prono IA": ["1X", "Victoire Real", "Over 2.5", "12"], "Cote LONAB": [1.45, 1.90, 1.75, 1.60]}
         else:
-            rows = base_rows
+            matchs = ["Inter vs Arsenal", "Inter vs Barca", "PSG vs EFO", "Inter vs Man City", "EFO vs Bayern", "Real vs Brest", "Salitas vs ASFA", "RCB vs USFA", "Douanes vs Vitesse", "Majestic vs Sonabel", "Al Hilal vs Al Nassr", "Barca vs Real"]
+            data = {"Match": matchs[:nb_matchs], "Prono IA": [random.choice(["1X", "X2", "12", "1", "X", "2"]) for _ in range(nb_matchs)], "Cote LONAB": [round(random.uniform(1.30,2.10),2) for _ in range(nb_matchs)]}
         
-        df = pd.DataFrame(rows, columns=["Match","Prono IA","Cote LONAB","Proba IA","Value","IA %","STATUT"])
+        df = pd.DataFrame(data)
         st.dataframe(df, use_container_width=True)
-        
-        if type_paris == "Double Chance":
-            st.caption(f"✅ {len(rows)} matchs Double Chance - FIX 1X / X2 / 12")
-        else:
-            st.caption(f"✅ {len(rows)} matchs {type_paris}")
 
-st.success("✅ DOUBLE CHANCE 10-15 OK - AUTRES TYPES FIXES")
+st.success(f"✅ {st.session_state.nb_jours} jours générés - PMUB + Bourse Internationale ajoutés !")
