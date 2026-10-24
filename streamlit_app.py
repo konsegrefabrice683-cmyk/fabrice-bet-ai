@@ -21,7 +21,7 @@ def seed(d,s=""):
     return int(hashlib.md5((d.strftime("%Y%m%d")+s).encode()).hexdigest()[:8],16)
 
 st.title("FABRICE BET AI")
-st.caption(f"FABRICE BET AI - 3 CHAMPIONS TYPE LONAB - JOUR INFINI - {datetime.now():%d/%m/%Y %H:%M:%S}")
+st.caption(f"FABRICE BET AI - 3 CHAMPIONS TYPE LONAB - SANS LIMITE - {datetime.now():%d/%m/%Y %H:%M:%S}")
 
 a,b,c = st.columns(3)
 with a:
@@ -44,7 +44,7 @@ with col3:
         st.session_state.nb=1
         st.rerun()
 
-st.info(f"FABRICE BET AI - 3 CHAMPIONS AVEC TYPE LONAB POUR CHOISIR - JOUR INFINI {st.session_state.nb*3} JOURS")
+st.info(f"FABRICE BET AI - 3 CHAMPIONS AVEC TYPE LONAB - SANS LIMITE SCORE ET OVER - JOUR INFINI {st.session_state.nb*3} JOURS")
 
 tab1, tab2, tab3 = st.tabs(["12 FIXES", "PMU-B JOURNAL HIPPIQUE", "BOURSE INTERNATIONALE"])
 
@@ -67,30 +67,30 @@ def get_prevention(marche, confiance):
     else:
         return "🟢 FEU VERT - RISQUE FAIBLE" if confiance >= 75 else "🟠 FEU ORANGE - RISQUE MOYEN" if confiance >= 60 else "🔴 FEU ROUGE - RISQUE ELEVE", "Risque Faible" if confiance >= 75 else "Risque Moyen" if confiance >= 60 else "Risque Eleve"
 
-# ===== CHAMPION 1 - PARIS SPORTIFS - TYPE LONAB COMPLET =====
+# ===== CHAMPION 1 - PARIS SPORTIFS - TYPE LONAB COMPLET SANS LIMITE =====
 with tab1:
-    st.markdown("### FABRICE BET AI - 12 FIXES - CHAMPION 1 - TYPE LONAB PARIS SPORTIFS")
+    st.markdown("### FABRICE BET AI - 12 FIXES - CHAMPION 1 - TYPE LONAB PARIS SPORTIFS - SANS LIMITE")
     type_lonab_p1=st.selectbox("Type LONAB - CHAMPION 1 - PARIS SPORTIFS", [
         "AI AUTO - Complet - Recommande",
         "Double Chance",
         "1X2",
-        "Over Under - 0.5 a 5.5",
-        "Score Exact - 0-0 a 6-1",
+        "Over Under - 0.5 a 5.5 - SANS LIMITE",
+        "Score Exact - 0-0 a 6-1 - SANS LIMITE",
         "BTTS - GG Oui Non",
         "Cartons - Over Under",
         "Expulsion - Rouge Oui Non",
         "Corners - Over Under",
         "Mi-Temps / MT-Fin",
         "BTTS + Over"
-    ], index=0, key="type_p1_v62")
-    st.success(f"CHAMPION 1 - {type_lonab_p1} - PREVENTION + AI ULTRA SOLIDE")
-    nb_matchs=st.slider("Nombre de matchs - CHAMPION 1", 10, 15, 12, key="nb_p1_v62")
+    ], index=0, key="type_p1_v63_sans_limite")
+    st.success(f"CHAMPION 1 - {type_lonab_p1} - PREVENTION + AI ULTRA SOLIDE - SANS LIMITE")
+    nb_matchs=st.slider("Nombre de matchs - CHAMPION 1", 10, 15, 12, key="nb_p1_v63")
     
     total=st.session_state.nb*3
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d, f"p1_v62_{nb_matchs}_{type_lonab_p1}"))
+        rnd=random.Random(seed(d, f"p1_v63_{nb_matchs}_{type_lonab_p1}"))
         is_today=(i==0)
         jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
         with st.expander(f"CHAMPION 1 - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {type_lonab_p1}", expanded=is_today):
@@ -114,14 +114,29 @@ with tab1:
                     confiance = rnd.randint(62,88)
                 elif "Over Under" in type_lonab_p1:
                     marche = "Over Under"
-                    prono = rnd.choice(["Over 2.5","Under 2.5","Over 1.5","Over 3.5","Over 0.5","Over 4.5","Over 5.5"])
-                    cote = round(rnd.uniform(1.40,2.60),2)
-                    confiance = rnd.randint(65,90)
+                    # ===== SANS LIMITE - TOUT 0.5 A 5.5 =====
+                    prono = rnd.choice([
+                        "Over 0.5","Under 0.5",
+                        "Over 1.5","Under 1.5",
+                        "Over 2.5","Under 2.5",
+                        "Over 3.5","Under 3.5",
+                        "Over 4.5","Under 4.5",
+                        "Over 5.5","Under 5.5"
+                    ])
+                    cote = round(rnd.uniform(1.35,3.20),2)
+                    confiance = rnd.randint(62,90)
                 elif "Score Exact" in type_lonab_p1:
                     marche = "Score Exact"
-                    prono = rnd.choice(["0-0","1-0","2-1","3-1","4-1","5-0","6-0","6-1","3-0","2-0"])
-                    cote = round(rnd.uniform(5.50,19.00),2)
-                    confiance = rnd.randint(35,68)
+                    # ===== SANS LIMITE - 0-0 A 6-1 =====
+                    prono = rnd.choice([
+                        "0-0","1-0","0-1","1-1",
+                        "2-0","0-2","2-1","1-2","2-2",
+                        "3-0","0-3","3-1","1-3","3-2","2-3","3-3",
+                        "4-0","0-4","4-1","1-4","4-2",
+                        "5-0","5-1","6-0","6-1"
+                    ])
+                    cote = round(rnd.uniform(4.50,25.00),2)
+                    confiance = rnd.randint(32,72)
                 elif "BTTS" in type_lonab_p1 and "Over" not in type_lonab_p1:
                     marche = "BTTS"
                     prono = rnd.choice(["GG Oui","GG Non","BTTS Oui","BTTS Non"])
@@ -152,14 +167,19 @@ with tab1:
                     prono = rnd.choice(["BTTS + Over 2.5","GG + Over 2.5","BTTS + Over 3.5"])
                     cote = round(rnd.uniform(1.90,3.80),2)
                     confiance = rnd.randint(58,84)
-                else: # AI AUTO
+                else: # AI AUTO - SANS LIMITE AUSSI
                     marche = rnd.choice(["1X2","Double Chance","Over Under","Score Exact","BTTS","Cartons","Expulsion","Corners","MT-Fin","BTTS + Over"])
-                    prono = rnd.choice(["1","1X","Over 2.5","2-1","GG Oui","Over 3.5 Cartons","Expulsion Non","Over 8.5 Corners","1/1","BTTS + Over 2.5"])
-                    cote = round(rnd.uniform(1.40,6.00),2)
+                    if marche == "Over Under":
+                        prono = rnd.choice(["Over 0.5","Under 0.5","Over 1.5","Under 1.5","Over 2.5","Under 2.5","Over 3.5","Under 3.5","Over 4.5","Under 4.5","Over 5.5","Under 5.5"])
+                    elif marche == "Score Exact":
+                        prono = rnd.choice(["0-0","1-0","0-1","1-1","2-0","0-2","2-1","1-2","2-2","3-0","0-3","3-1","1-3","3-2","2-3","3-3","4-0","0-4","4-1","1-4","4-2","5-0","5-1","6-0","6-1"])
+                    else:
+                        prono = rnd.choice(["1","1X","Over 2.5","2-1","GG Oui","Over 3.5 Cartons","Expulsion Non","Over 8.5 Corners","1/1","BTTS + Over 2.5"])
+                    cote = round(rnd.uniform(1.40,8.00),2)
                     confiance = rnd.randint(60,88)
                 
                 prevention, risque = get_prevention(marche, confiance)
-                analyse = f"AI ULTRA SOLIDE - {marche} {prono} - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - {prevention} - Rapide et Efficace - J+{i}"
+                analyse = f"AI ULTRA SOLIDE - {marche} {prono} SANS LIMITE - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - {prevention} - Rapide et Efficace - J+{i}"
                 
                 data.append({
                     "Match":f"{team} - {lig}",
@@ -191,14 +211,14 @@ with tab2:
         "Trio",
         "Multi",
         "2sur4"
-    ], index=0, key="type_p2_v62")
-    st.success(f"CHAMPION 2 - {type_lonab_p2} - PREVENTION + AI ULTRA SOLIDE - TYPE LONAB PMU-B")
+    ], index=0, key="type_p2_v63")
+    st.success(f"CHAMPION 2 - {type_lonab_p2} - PREVENTION + AI ULTRA SOLIDE")
     
     total=st.session_state.nb*3
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d, f"p2_v62_{type_lonab_p2}"))
+        rnd=random.Random(seed(d, f"p2_v63_{type_lonab_p2}"))
         fav=rnd.sample(list(range(1,17)),8)
         is_today=(i==0)
         jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
@@ -272,7 +292,7 @@ with tab2:
                 cote = round(rnd.uniform(2.0,5.5),1)
                 confiance = rnd.randint(75,91)
                 analyse = f"AI ULTRA SOLIDE - 2sur4 {prono} - Forme {forme_cheval}% - Risque faible - Feu vert - J+{i}"
-            else: # AI AUTO
+            else:
                 choix = rnd.choice(["Tierce","Quarte","Quinte","Couple Gagnant","Simple Gagnant"])
                 if choix == "Tierce":
                     prono = f"{fav[0]}-{fav[1]}-{fav[2]}"
@@ -294,11 +314,11 @@ with tab2:
                 analyse = f"AI ULTRA SOLIDE - {marche} {prono} - Cheval {fav[0]} Forme {forme_cheval}% Driver {forme_driver}% - AI AUTO Complet - Rapide et Efficace - J+{i}"
             
             prevention, risque = get_prevention(marche, confiance)
-            st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:12px;text-align:center"><b>FABRICE BET AI - CHAMPION 2 - {marche} JOUR INFINI J+{i}: {prono}<br>Cote {cote} - {prevention}</b><br>BASE {fav[0]}-{fav[1]} - Forme {forme_cheval}% - {risque} - Confiance {confiance}%<br>{analyse}<br>{d.strftime("%d/%m/%Y")} {datetime.now():%H:%M}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:12px;text-align:center"><b>FABRICE BET AI - CHAMPION 2 - {marche} JOUR INFINI J+{i}: {prono}<br>Cote {cote} - {prevention}</b><br>BASE {fav[0]}-{fav[1]} - Forme {forme_cheval}% - {risque} - Confiance {confiance}%<br>{analyse}</div>', unsafe_allow_html=True)
             data_pmu=[{"Type LONAB PMU-B":marche,"Prono":prono,"Cote":cote,"Prevention":prevention,"Risque":risque,"Analyse Ultra Solide":analyse,"Confiance":f"{confiance}%","Jour":f"J+{i}"}]
             st.dataframe(pd.DataFrame(data_pmu), use_container_width=True, hide_index=True)
 
-# ===== CHAMPION 3 - BOURSE - TYPE LONAB BOURSE =====
+# ===== CHAMPION 3 - BOURSE =====
 with tab3:
     st.markdown("### FABRICE BET AI - BOURSE INTERNATIONALE - CHAMPION 3 - TYPE LONAB BOURSE")
     type_lonab_p3=st.selectbox("Type LONAB - CHAMPION 3 - BOURSE", [
@@ -313,8 +333,8 @@ with tab3:
         "Day Trading - Journalier",
         "Long Terme - HOLD",
         "Actions - AAPL TSLA NVDA"
-    ], index=0, key="type_p3_v62")
-    st.success(f"CHAMPION 3 - {type_lonab_p3} - PREVENTION + AI ULTRA SOLIDE - TYPE LONAB BOURSE")
+    ], index=0, key="type_p3_v63")
+    st.success(f"CHAMPION 3 - {type_lonab_p3} - PREVENTION + AI ULTRA SOLIDE")
     
     base_markets_all={
         "BTC/USD":(crypto_live["BTC"],"CRYPTO","$"),"ETH/USD":(crypto_live["ETH"],"CRYPTO","$"),"SOL/USD":(crypto_live["SOL"],"CRYPTO","$"),
@@ -329,11 +349,10 @@ with tab3:
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d, f"p3_v62_{type_lonab_p3}"))
+        rnd=random.Random(seed(d, f"p3_v63_{type_lonab_p3}"))
         is_today=(i==0)
         jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
         with st.expander(f"CHAMPION 3 - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {type_lonab_p3}", expanded=is_today):
-            # FILTRAGE SELON TYPE LONAB BOURSE
             if "FOREX" in type_lonab_p3:
                 filtered = {k:v for k,v in base_markets_all.items() if v[1]=="FOREX"}
             elif "CRYPTO" in type_lonab_p3:
@@ -355,7 +374,6 @@ with tab3:
                 tendance=rnd.choice(["HAUSSIER FORT","BAISSIER FORT","HAUSSIER LEGER","LATERAL","BAISSIER LEGER"])
                 force=rnd.randint(58,92)
                 
-                # TYPE LONAB BOURSE LOGIQUE
                 if "ACHETER" in type_lonab_p3:
                     signal = "ACHETER"
                     confiance = rnd.randint(68,90)
@@ -381,7 +399,7 @@ with tab3:
                     confiance = rnd.randint(70,90)
                     prevention = "🟢 FEU VERT - LONG TERME"
                     risque = "Risque Tres Faible - HOLD"
-                else: # AI AUTO
+                else:
                     if rsi < 30:
                         signal = "ACHETER"
                         confiance = rnd.randint(75,92)
@@ -415,4 +433,4 @@ with tab3:
                 })
             st.dataframe(pd.DataFrame(data_b), use_container_width=True, hide_index=True)
 
-st.success(f"FABRICE BET AI - V62 - 3 CHAMPIONS AVEC TYPE LONAB - PARIS SPORTIFS / PMU-B / BOURSE - CHACUN SON TYPE LONAB POUR CHOISIR - JOUR INFINI {st.session_state.nb*3} JOURS - {datetime.now():%H:%M:%S}")
+st.success(f"FABRICE BET AI - V63 - 3 CHAMPIONS TYPE LONAB - SANS LIMITE 0-0 A 6-1 ET 0.5 A 5.5 - JOUR INFINI {st.session_state.nb*3} JOURS - {datetime.now():%H:%M:%S}")
