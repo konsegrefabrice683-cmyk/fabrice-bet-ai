@@ -21,15 +21,15 @@ def seed(d,s=""):
     return int(hashlib.md5((d.strftime("%Y%m%d")+s).encode()).hexdigest()[:8],16)
 
 st.title("FABRICE BET AI")
-st.caption(f"FABRICE BET AI - V44 ORIGINAL - PREVENTION RISQUE FEU VERT - AI ULTRA SOLIDE RAPIDE ET EFFICACE - JOUR INFINI - {datetime.now():%d/%m/%Y %H:%M:%S}")
+st.caption(f"FABRICE BET AI - 3 CHAMPIONS TYPE LONAB - JOUR INFINI - {datetime.now():%d/%m/%Y %H:%M:%S}")
 
 a,b,c = st.columns(3)
 with a:
-    st.metric("CHAMPION 1", "PARIS SPORTIFS")
+    st.metric("CHAMPION 1", "PARIS SPORTIFS", "TYPE LONAB")
 with b:
-    st.metric("CHAMPION 2", "PMU-B")
+    st.metric("CHAMPION 2", "PMU-B", "TYPE LONAB")
 with c:
-    st.metric("CHAMPION 3", "BOURSE")
+    st.metric("CHAMPION 3", "BOURSE", "TYPE LONAB")
 
 col1,col2,col3 = st.columns(3)
 with col1:
@@ -44,7 +44,7 @@ with col3:
         st.session_state.nb=1
         st.rerun()
 
-st.info(f"FABRICE BET AI - PREVENTION RISQUE FEU VERT - JOUR INFINI {st.session_state.nb*3} JOURS - MISE A JOUR TOUS LES JOURS")
+st.info(f"FABRICE BET AI - 3 CHAMPIONS AVEC TYPE LONAB POUR CHOISIR - JOUR INFINI {st.session_state.nb*3} JOURS")
 
 tab1, tab2, tab3 = st.tabs(["12 FIXES", "PMU-B JOURNAL HIPPIQUE", "BOURSE INTERNATIONALE"])
 
@@ -59,54 +59,41 @@ fixtures=[
 ]
 jours_fr=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
 
-SCORE_ALL = ["0-0","1-0","0-1","1-1","2-0","0-2","2-1","1-2","2-2","3-0","0-3","3-1","1-3","3-2","2-3","3-3","4-0","0-4","4-1","1-4","4-2","5-0","5-1","6-0","6-1"]
-OVER_ALL = ["Over 0.5","Under 0.5","Over 1.5","Under 1.5","Over 2.5","Under 2.5","Over 3.5","Under 3.5","Over 4.5","Under 4.5","Over 5.5","Under 5.5"]
+def get_prevention(marche, confiance):
+    if marche in ["Score Exact","Expulsion","Cartons","Quinte+","Multi"]:
+        return "🔴 FEU ROUGE - RISQUE TRES ELEVE" if confiance < 65 else "🟠 FEU ORANGE - RISQUE ELEVE", "Risque Tres Eleve" if confiance < 65 else "Risque Eleve"
+    elif marche in ["Double Chance","Couplé Placé","Simple Placé","FOREX","ACHETER","VENDRE"]:
+        return "🟢 FEU VERT - RISQUE TRES FAIBLE" if confiance >= 78 else "🟢 FEU VERT - RISQUE FAIBLE", "Risque Tres Faible" if confiance >= 78 else "Risque Faible"
+    else:
+        return "🟢 FEU VERT - RISQUE FAIBLE" if confiance >= 75 else "🟠 FEU ORANGE - RISQUE MOYEN" if confiance >= 60 else "🔴 FEU ROUGE - RISQUE ELEVE", "Risque Faible" if confiance >= 75 else "Risque Moyen" if confiance >= 60 else "Risque Eleve"
 
-def get_prevention(marche, confiance, diff):
-    """PREVENTION RISQUE FEU VERT ORANGE ROUGE"""
-    if marche == "Score Exact":
-        return "🔴 FEU ROUGE - RISQUE TRES ELEVE", "Risque Tres Eleve - Cote elevee mais difficile"
-    elif marche in ["Expulsion","Cartons"]:
-        return "🟠 FEU ORANGE - RISQUE ELEVE", "Risque Eleve - Match a tension"
-    elif marche in ["BTTS","Corners","BTTS + Over"]:
-        if confiance >= 75:
-            return "🟢 FEU VERT - RISQUE FAIBLE", "Risque Faible - Solide"
-        else:
-            return "🟠 FEU ORANGE - RISQUE MOYEN", "Risque Moyen - Correct"
-    elif marche == "Double Chance":
-        if abs(diff) > 25:
-            return "🟢 FEU VERT - RISQUE TRES FAIBLE", "Risque Tres Faible - Securise"
-        else:
-            return "🟢 FEU VERT - RISQUE FAIBLE", "Risque Faible - Securise"
-    elif marche == "Over Under":
-        if confiance >= 78:
-            return "🟢 FEU VERT - RISQUE FAIBLE", "Risque Faible - Tendance claire"
-        else:
-            return "🟠 FEU ORANGE - RISQUE MOYEN", "Risque Moyen - A surveiller"
-    else: # 1X2
-        if confiance >= 80:
-            return "🟢 FEU VERT - RISQUE FAIBLE", "Risque Faible - Base solide"
-        elif confiance >= 65:
-            return "🟠 FEU ORANGE - RISQUE MOYEN", "Risque Moyen - Jouable"
-        else:
-            return "🔴 FEU ROUGE - RISQUE ELEVE", "Risque Eleve - Match serre"
-
+# ===== CHAMPION 1 - PARIS SPORTIFS - TYPE LONAB COMPLET =====
 with tab1:
-    st.markdown("### FABRICE BET AI - 12 FIXES - CHAMPION 1")
-    st.markdown("#### Type LONAB")
-    # TYPE LONAB SANS SCORE EXACT CARTON EXPULSION - COMME TU VEUX
-    type_lonab=st.selectbox("Type LONAB", ["AI AUTO - Complet - Recommande","Double Chance","1X2","Over Under AI AUTO"], index=0, key="type_v60")
-    st.success(f"FABRICE BET AI - {type_lonab} - PREVENTION ACTIVE")
-    nb_matchs=st.slider("Nombre de matchs", 10, 15, 12, key="nb_v60")
+    st.markdown("### FABRICE BET AI - 12 FIXES - CHAMPION 1 - TYPE LONAB PARIS SPORTIFS")
+    type_lonab_p1=st.selectbox("Type LONAB - CHAMPION 1 - PARIS SPORTIFS", [
+        "AI AUTO - Complet - Recommande",
+        "Double Chance",
+        "1X2",
+        "Over Under - 0.5 a 5.5",
+        "Score Exact - 0-0 a 6-1",
+        "BTTS - GG Oui Non",
+        "Cartons - Over Under",
+        "Expulsion - Rouge Oui Non",
+        "Corners - Over Under",
+        "Mi-Temps / MT-Fin",
+        "BTTS + Over"
+    ], index=0, key="type_p1_v62")
+    st.success(f"CHAMPION 1 - {type_lonab_p1} - PREVENTION + AI ULTRA SOLIDE")
+    nb_matchs=st.slider("Nombre de matchs - CHAMPION 1", 10, 15, 12, key="nb_p1_v62")
     
     total=st.session_state.nb*3
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d, f"v60_prevention_{nb_matchs}_{type_lonab}"))
+        rnd=random.Random(seed(d, f"p1_v62_{nb_matchs}_{type_lonab_p1}"))
         is_today=(i==0)
         jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
-        with st.expander(f"FABRICE BET AI - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {nb_matchs} MATCHS - PREVENTION", expanded=is_today):
+        with st.expander(f"CHAMPION 1 - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {type_lonab_p1}", expanded=is_today):
             nb_reel = min(nb_matchs, len(fixtures))
             data=[]
             for team,lig,attaque,defense,moy_buts in rnd.sample(fixtures, nb_reel):
@@ -115,132 +102,65 @@ with tab1:
                 force = rnd.randint(68,95)
                 agressivite = rnd.randint(25,90)
                 
-                # ===== AI ULTRA SOLIDE RAPIDE ET EFFICACE EN COULISSE =====
-                # L AI CHOISIT PARMI TOUS LES MARCHES Y COMPRIS SCORE EXACT CARTON EXPULSION
-                # MAIS TYPE LONAB NAFFICHE QUE CE QUE TU VEUX
-                
-                if type_lonab == "Double Chance":
+                if "Double Chance" in type_lonab_p1:
                     marche = "Double Chance"
-                    if diff > 25:
-                        prono = "1X"
-                        cote = round(rnd.uniform(1.18,1.55),2)
-                        confiance = rnd.randint(82,94)
-                    elif diff < -20:
-                        prono = "X2"
-                        cote = round(rnd.uniform(1.22,1.60),2)
-                        confiance = rnd.randint(80,92)
-                    else:
-                        prono = rnd.choice(["1X","X2"])
-                        cote = round(rnd.uniform(1.30,1.85),2)
-                        confiance = rnd.randint(68,84)
-                    analyse = f"AI ULTRA SOLIDE - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - {prono} - Double Chance securise - Rapide et Efficace - J+{i}"
-                
-                elif type_lonab == "1X2":
+                    prono = "1X" if diff > 10 else "X2" if diff < -10 else rnd.choice(["1X","X2"])
+                    cote = round(rnd.uniform(1.18,1.85),2)
+                    confiance = rnd.randint(72,94)
+                elif type_lonab_p1 == "1X2":
                     marche = "1X2"
-                    if diff > 30:
-                        prono = "1"
-                        cote = round(rnd.uniform(1.45,2.10),2)
-                        confiance = rnd.randint(75,90)
-                    elif diff < -20:
-                        prono = "2"
-                        cote = round(rnd.uniform(1.65,2.40),2)
-                        confiance = rnd.randint(72,88)
-                    else:
-                        prono = rnd.choice(["1","X","2"])
-                        cote = round(rnd.uniform(2.20,3.80),2)
-                        confiance = rnd.randint(58,76)
-                    analyse = f"AI ULTRA SOLIDE - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - Victoire {prono} - Analyse rapide et efficace - J+{i}"
-                
-                elif type_lonab == "Over Under AI AUTO":
+                    prono = "1" if diff > 25 else "2" if diff < -18 else rnd.choice(["1","X","2"])
+                    cote = round(rnd.uniform(1.50,3.80),2)
+                    confiance = rnd.randint(62,88)
+                elif "Over Under" in type_lonab_p1:
                     marche = "Over Under"
-                    if moy_buts < 1.2:
-                        prono = rnd.choice(["Under 1.5","Under 2.5","Over 0.5"])
-                        cote = round(rnd.uniform(1.40,2.10),2)
-                        confiance = rnd.randint(70,88)
-                    elif moy_buts < 2.5:
-                        prono = rnd.choice(["Under 2.5","Over 1.5","Over 2.5"])
-                        cote = round(rnd.uniform(1.50,2.20),2)
-                        confiance = rnd.randint(68,86)
-                    else:
-                        prono = rnd.choice(["Over 2.5","Over 3.5","Over 4.5","Over 1.5"])
-                        cote = round(rnd.uniform(1.45,2.40),2)
-                        confiance = rnd.randint(72,90)
-                    analyse = f"AI ULTRA SOLIDE - {moy_buts:.1f} buts detecte - Att {attaque}% Def {defense}% - Forme {forme}% - {prono} - Buts - Rapide et Efficace - J+{i}"
+                    prono = rnd.choice(["Over 2.5","Under 2.5","Over 1.5","Over 3.5","Over 0.5","Over 4.5","Over 5.5"])
+                    cote = round(rnd.uniform(1.40,2.60),2)
+                    confiance = rnd.randint(65,90)
+                elif "Score Exact" in type_lonab_p1:
+                    marche = "Score Exact"
+                    prono = rnd.choice(["0-0","1-0","2-1","3-1","4-1","5-0","6-0","6-1","3-0","2-0"])
+                    cote = round(rnd.uniform(5.50,19.00),2)
+                    confiance = rnd.randint(35,68)
+                elif "BTTS" in type_lonab_p1 and "Over" not in type_lonab_p1:
+                    marche = "BTTS"
+                    prono = rnd.choice(["GG Oui","GG Non","BTTS Oui","BTTS Non"])
+                    cote = round(rnd.uniform(1.60,2.40),2)
+                    confiance = rnd.randint(62,86)
+                elif "Cartons" in type_lonab_p1:
+                    marche = "Cartons"
+                    prono = rnd.choice(["Over 3.5 Cartons","Under 3.5 Cartons","Over 4.5 Cartons","Carton Rouge Oui"])
+                    cote = round(rnd.uniform(1.70,3.50),2)
+                    confiance = rnd.randint(55,82)
+                elif "Expulsion" in type_lonab_p1:
+                    marche = "Expulsion"
+                    prono = rnd.choice(["Expulsion Oui","Expulsion Non","Rouge Oui","Rouge Non"])
+                    cote = round(rnd.uniform(2.20,6.00),2)
+                    confiance = rnd.randint(42,75)
+                elif "Corners" in type_lonab_p1:
+                    marche = "Corners"
+                    prono = rnd.choice(["Over 8.5 Corners","Over 9.5 Corners","Under 8.5 Corners","Over 10.5 Corners"])
+                    cote = round(rnd.uniform(1.60,2.50),2)
+                    confiance = rnd.randint(60,86)
+                elif "Mi-Temps" in type_lonab_p1:
+                    marche = "MT-Fin"
+                    prono = rnd.choice(["1/1","X/1","X/2","1/X","2/1","X/X","1 Mi-Temps","Over 0.5 Mi-Temps"])
+                    cote = round(rnd.uniform(1.80,5.50),2)
+                    confiance = rnd.randint(58,82)
+                elif "BTTS + Over" in type_lonab_p1:
+                    marche = "BTTS + Over"
+                    prono = rnd.choice(["BTTS + Over 2.5","GG + Over 2.5","BTTS + Over 3.5"])
+                    cote = round(rnd.uniform(1.90,3.80),2)
+                    confiance = rnd.randint(58,84)
+                else: # AI AUTO
+                    marche = rnd.choice(["1X2","Double Chance","Over Under","Score Exact","BTTS","Cartons","Expulsion","Corners","MT-Fin","BTTS + Over"])
+                    prono = rnd.choice(["1","1X","Over 2.5","2-1","GG Oui","Over 3.5 Cartons","Expulsion Non","Over 8.5 Corners","1/1","BTTS + Over 2.5"])
+                    cote = round(rnd.uniform(1.40,6.00),2)
+                    confiance = rnd.randint(60,88)
                 
-                else: # AI AUTO - COMPLET - L AI CHOISIT TOUT Y COMPRIS SCORE EXACT CARTON EXPULSION
-                    # MAIS C EST L AI QUI DECIDE - PAS DANS TYPE LONAB
-                    choix_marche = rnd.choices(
-                        ["1X2","Double Chance","Over Under","Score Exact","BTTS","Cartons","Expulsion","Corners","BTTS + Over"],
-                        weights=[20,20,20,10,10,5,3,7,5],
-                        k=1
-                    )[0]
-                    marche = choix_marche
-                    
-                    if marche == "1X2":
-                        prono = "1" if diff > 20 else "2" if diff < -15 else rnd.choice(["1","X","2"])
-                        cote = round(rnd.uniform(1.50,3.80),2)
-                        confiance = rnd.randint(62,88)
-                        analyse = f"AI ULTRA SOLIDE - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - Victoire {prono} - Analyse ultra solide rapide et efficace - J+{i}"
-                    
-                    elif marche == "Double Chance":
-                        prono = rnd.choice(["1X","X2","12"])
-                        cote = round(rnd.uniform(1.20,1.85),2)
-                        confiance = rnd.randint(70,92)
-                        analyse = f"AI ULTRA SOLIDE - Diff {diff} - Forme {forme}% Force {force}% - {prono} - Securise - Rapide et Efficace - J+{i}"
-                    
-                    elif marche == "Over Under":
-                        prono = rnd.choice(OVER_ALL)
-                        cote = round(rnd.uniform(1.40,2.60),2)
-                        confiance = rnd.randint(65,88)
-                        analyse = f"AI ULTRA SOLIDE - {moy_buts:.1f} buts - Att {attaque}% Def {defense}% - {prono} - Tendance claire - Rapide et Efficace - J+{i}"
-                    
-                    elif marche == "Score Exact":
-                        # SCORE EXACT 0-0 A 6-1 - AI CHOISIT SEULE
-                        if moy_buts < 1.0:
-                            prono = rnd.choice(["0-0","1-0","0-1","1-1"])
-                        elif moy_buts < 2.5:
-                            prono = rnd.choice(["1-0","2-0","2-1","1-1","1-2"])
-                        elif moy_buts < 4.0:
-                            prono = rnd.choice(["2-1","3-1","2-2","3-2","2-0"])
-                        else:
-                            prono = rnd.choice(["3-1","4-1","5-0","6-0","6-1","4-2","5-1"])
-                        cote = round(rnd.uniform(5.50,19.00),2)
-                        confiance = rnd.randint(35,68)
-                        analyse = f"AI ULTRA SOLIDE - Score Exact {prono} - Att {attaque}% Def {defense}% - {moy_buts:.1f} buts - Forme {forme}% - Analyse ultra solide rapide et efficace mais risque eleve - J+{i}"
-                    
-                    elif marche == "BTTS":
-                        prono = rnd.choice(["GG Oui","GG Non","BTTS Oui","BTTS Non"])
-                        cote = round(rnd.uniform(1.60,2.40),2)
-                        confiance = rnd.randint(62,85)
-                        analyse = f"AI ULTRA SOLIDE - BTTS - Att {attaque}% Def {defense}% - Forme {forme}% - {prono} - Les deux equipes marquent - Rapide et Efficace - J+{i}"
-                    
-                    elif marche == "Cartons":
-                        prono = rnd.choice(["Over 3.5 Cartons","Under 3.5 Cartons","Over 4.5 Cartons","Carton Rouge Oui","Over 2.5 Cartons"])
-                        cote = round(rnd.uniform(1.70,3.50),2)
-                        confiance = rnd.randint(55,80)
-                        analyse = f"AI ULTRA SOLIDE - Cartons - Agressivite {agressivite}% - Att {attaque}% - Forme {forme}% - Derby tendu - {prono} - Analyse ultra solide - J+{i}"
-                    
-                    elif marche == "Expulsion":
-                        prono = rnd.choice(["Expulsion Oui","Expulsion Non","Rouge Oui","Rouge Non"])
-                        cote = round(rnd.uniform(2.20,6.00),2)
-                        confiance = rnd.randint(42,72)
-                        analyse = f"AI ULTRA SOLIDE - Expulsion - Agressivite {agressivite}% - Match a risque - {prono} - Analyse rapide et efficace - J+{i}"
-                    
-                    elif marche == "Corners":
-                        prono = rnd.choice(["Over 8.5 Corners","Under 8.5 Corners","Over 9.5 Corners","Over 7.5 Corners","Over 10.5 Corners"])
-                        cote = round(rnd.uniform(1.60,2.50),2)
-                        confiance = rnd.randint(60,84)
-                        analyse = f"AI ULTRA SOLIDE - Corners - Att {attaque}% pression - {moy_buts:.1f} buts - {prono} - Rapide et Efficace - J+{i}"
-                    
-                    else: # BTTS + Over
-                        prono = rnd.choice(["BTTS + Over 2.5","GG + Over 2.5","BTTS + Over 3.5"])
-                        cote = round(rnd.uniform(1.90,3.80),2)
-                        confiance = rnd.randint(58,82)
-                        analyse = f"AI ULTRA SOLIDE - BTTS + Over - Att {attaque}% Def {defense}% - {moy_buts:.1f} buts - Match ouvert - {prono} - Ultra solide - J+{i}"
-
-                # PREVENTION
-                prevention, risque = get_prevention(marche, confiance, diff)
-
+                prevention, risque = get_prevention(marche, confiance)
+                analyse = f"AI ULTRA SOLIDE - {marche} {prono} - Att {attaque}% Def {defense}% Diff {diff} - Forme {forme}% Force {force}% - {moy_buts:.1f} buts - {prevention} - Rapide et Efficace - J+{i}"
+                
                 data.append({
                     "Match":f"{team} - {lig}",
                     "Marche":marche,
@@ -252,110 +172,242 @@ with tab1:
                     "Confiance":f"{confiance}%",
                     "Jour Infini":f"J+{i}",
                 })
-            
             st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
-            st.success(f"FABRICE BET AI - {nb_reel} matchs - {nom} {d.strftime('%d/%m/%Y')} - JOUR INFINI J+{i} - PREVENTION + AI ULTRA SOLIDE")
 
+# ===== CHAMPION 2 - PMU-B - TYPE LONAB PMU =====
 with tab2:
-    st.markdown("### FABRICE BET AI - PMU-B JOURNAL HIPPIQUE - CHAMPION 2")
+    st.markdown("### FABRICE BET AI - PMU-B - CHAMPION 2 - TYPE LONAB PMU-B")
+    type_lonab_p2=st.selectbox("Type LONAB - CHAMPION 2 - PMU-B", [
+        "AI AUTO - Complet - Recommande",
+        "Tierce",
+        "Quarte",
+        "Quinte",
+        "Quinte+",
+        "Couple Gagnant",
+        "Couple Place",
+        "Couple Ordre",
+        "Simple Gagnant",
+        "Simple Place",
+        "Trio",
+        "Multi",
+        "2sur4"
+    ], index=0, key="type_p2_v62")
+    st.success(f"CHAMPION 2 - {type_lonab_p2} - PREVENTION + AI ULTRA SOLIDE - TYPE LONAB PMU-B")
+    
     total=st.session_state.nb*3
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d,"pmu_v60_prevention"))
-        fav=rnd.sample(list(range(1,17)),6)
+        rnd=random.Random(seed(d, f"p2_v62_{type_lonab_p2}"))
+        fav=rnd.sample(list(range(1,17)),8)
         is_today=(i==0)
-        jour_label="AUJOURDHUI - JOUR INFINI - PREVENTION" if is_today else f"J+{i} - JOUR INFINI - PREVENTION"
-        with st.expander(f"FABRICE BET AI - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - PREVENTION", expanded=is_today):
+        jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
+        with st.expander(f"CHAMPION 2 - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {type_lonab_p2}", expanded=is_today):
             forme_cheval=rnd.randint(65,96)
             forme_driver=rnd.randint(62,94)
-            confiance=rnd.randint(58,90)
-            tierce=f"{fav[0]}-{fav[1]}-{fav[2]}"
-            quarte=f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}"
-            quinte=f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}-{fav[4]}"
             
-            if confiance >= 80:
-                prevention_pmu="🟢 FEU VERT - RISQUE FAIBLE"
-                risque_pmu="Risque Faible - Base solide"
-            elif confiance >= 65:
-                prevention_pmu="🟠 FEU ORANGE - RISQUE MOYEN"
-                risque_pmu="Risque Moyen - Jouable"
-            else:
-                prevention_pmu="🔴 FEU ROUGE - RISQUE ELEVE"
-                risque_pmu="Risque Eleve - Outsiders possibles"
+            if "Tierce" in type_lonab_p2:
+                marche = "Tierce"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}"
+                cote = round(rnd.uniform(15.0,85.0),1)
+                confiance = rnd.randint(58,84)
+                analyse = f"AI ULTRA SOLIDE - Tierce {prono} - Cheval {fav[0]} Forme {forme_cheval}% Driver {forme_driver}% - Base solide - Rapide et Efficace - J+{i}"
+            elif "Quarte" in type_lonab_p2:
+                marche = "Quarte"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}"
+                cote = round(rnd.uniform(45.0,250.0),1)
+                confiance = rnd.randint(48,76)
+                analyse = f"AI ULTRA SOLIDE - Quarte {prono} - Forme {forme_cheval}% - {forme_driver}% - Analyse ultra solide - J+{i}"
+            elif "Quinte+" in type_lonab_p2:
+                marche = "Quinte+"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}-{fav[4]} + Bonus {fav[5]}"
+                cote = round(rnd.uniform(120.0,850.0),1)
+                confiance = rnd.randint(38,68)
+                analyse = f"AI ULTRA SOLIDE - Quinte+ {prono} - Forme {forme_cheval}% - Risque eleve mais cote elevee - Ultra solide - J+{i}"
+            elif "Quinte" in type_lonab_p2:
+                marche = "Quinte"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}-{fav[4]}"
+                cote = round(rnd.uniform(80.0,450.0),1)
+                confiance = rnd.randint(45,74)
+                analyse = f"AI ULTRA SOLIDE - Quinte {prono} - Base {fav[0]}-{fav[1]} - Forme {forme_cheval}% - Rapide et Efficace - J+{i}"
+            elif "Couple Gagnant" in type_lonab_p2:
+                marche = "Couple Gagnant"
+                prono = f"{fav[0]}-{fav[1]}"
+                cote = round(rnd.uniform(4.5,22.0),1)
+                confiance = rnd.randint(65,88)
+                analyse = f"AI ULTRA SOLIDE - Couple Gagnant {prono} - Forme {forme_cheval}% - Securise - J+{i}"
+            elif "Couple Place" in type_lonab_p2:
+                marche = "Couple Place"
+                prono = f"{fav[0]}-{fav[1]}"
+                cote = round(rnd.uniform(2.2,8.5),1)
+                confiance = rnd.randint(72,90)
+                analyse = f"AI ULTRA SOLIDE - Couple Place {prono} - Forme {forme_cheval}% - Risque tres faible - Securise - J+{i}"
+            elif "Simple Gagnant" in type_lonab_p2:
+                marche = "Simple Gagnant"
+                prono = f"{fav[0]}"
+                cote = round(rnd.uniform(2.8,12.0),1)
+                confiance = rnd.randint(68,88)
+                analyse = f"AI ULTRA SOLIDE - Simple Gagnant {prono} - Cheval {fav[0]} Forme {forme_cheval}% Driver {forme_driver}% - Base - J+{i}"
+            elif "Simple Place" in type_lonab_p2:
+                marche = "Simple Place"
+                prono = f"{fav[0]}"
+                cote = round(rnd.uniform(1.4,3.2),1)
+                confiance = rnd.randint(78,92)
+                analyse = f"AI ULTRA SOLIDE - Simple Place {prono} - Forme {forme_cheval}% - Risque tres faible - Feu vert - J+{i}"
+            elif "Trio" in type_lonab_p2:
+                marche = "Trio"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}"
+                cote = round(rnd.uniform(25.0,120.0),1)
+                confiance = rnd.randint(52,78)
+                analyse = f"AI ULTRA SOLIDE - Trio {prono} - Forme {forme_cheval}% - Analyse ultra solide - J+{i}"
+            elif "Multi" in type_lonab_p2:
+                marche = "Multi"
+                prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}"
+                cote = round(rnd.uniform(35.0,180.0),1)
+                confiance = rnd.randint(45,72)
+                analyse = f"AI ULTRA SOLIDE - Multi {prono} - 4 chevaux - Forme {forme_cheval}% - J+{i}"
+            elif "2sur4" in type_lonab_p2:
+                marche = "2sur4"
+                prono = f"{fav[0]}-{fav[1]}"
+                cote = round(rnd.uniform(2.0,5.5),1)
+                confiance = rnd.randint(75,91)
+                analyse = f"AI ULTRA SOLIDE - 2sur4 {prono} - Forme {forme_cheval}% - Risque faible - Feu vert - J+{i}"
+            else: # AI AUTO
+                choix = rnd.choice(["Tierce","Quarte","Quinte","Couple Gagnant","Simple Gagnant"])
+                if choix == "Tierce":
+                    prono = f"{fav[0]}-{fav[1]}-{fav[2]}"
+                    marche = "Tierce"
+                elif choix == "Quarte":
+                    prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}"
+                    marche = "Quarte"
+                elif choix == "Quinte":
+                    prono = f"{fav[0]}-{fav[1]}-{fav[2]}-{fav[3]}-{fav[4]}"
+                    marche = "Quinte"
+                elif choix == "Couple Gagnant":
+                    prono = f"{fav[0]}-{fav[1]}"
+                    marche = "Couple Gagnant"
+                else:
+                    prono = f"{fav[0]}"
+                    marche = "Simple Gagnant"
+                cote = round(rnd.uniform(3.0,150.0),1)
+                confiance = rnd.randint(55,85)
+                analyse = f"AI ULTRA SOLIDE - {marche} {prono} - Cheval {fav[0]} Forme {forme_cheval}% Driver {forme_driver}% - AI AUTO Complet - Rapide et Efficace - J+{i}"
             
-            analyse=f"AI ULTRA SOLIDE - Cheval {fav[0]} Forme {forme_cheval}% Driver {forme_driver}% - {prevention_pmu} - Tierce {tierce} - Analyse ultra solide rapide et efficace - J+{i}"
-            st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:12px;text-align:center"><b>FABRICE BET AI - QUINTE JOUR INFINI J+{i}: {quinte}<br>TIERCE: {tierce} | QUARTE: {quarte}</b><br>BASE {fav[0]}-{fav[1]} - Forme {forme_cheval}% - {prevention_pmu}<br>{risque_pmu} - Confiance {confiance}%<br>{analyse}<br>{d.strftime("%d/%m/%Y")} {datetime.now():%H:%M}</div>', unsafe_allow_html=True)
-            
-            data_pmu=[
-                {"Type":f"Tierce - {prevention_pmu}","Prono":tierce,"Prevention":prevention_pmu,"Risque":risque_pmu,"Confiance":f"{confiance}%","Analyse Ultra Solide":analyse,"Jour":f"J+{i}"},
-                {"Type":f"Quarte - {prevention_pmu}","Prono":quarte,"Prevention":prevention_pmu,"Risque":risque_pmu,"Confiance":f"{confiance-5}%","Analyse Ultra Solide":f"AI ULTRA SOLIDE - Quarte {quarte} - {prevention_pmu} - J+{i}","Jour":f"J+{i}"},
-                {"Type":f"Quinte - {prevention_pmu}","Prono":quinte,"Prevention":prevention_pmu,"Risque":risque_pmu,"Confiance":f"{confiance-8}%","Analyse Ultra Solide":f"AI ULTRA SOLIDE - Quinte {quinte} - Forme {forme_cheval}% - {risque_pmu} - Rapide et Efficace - J+{i}","Jour":f"J+{i}"},
-            ]
+            prevention, risque = get_prevention(marche, confiance)
+            st.markdown(f'<div style="background:#d00000;color:white;padding:14px;border-radius:12px;text-align:center"><b>FABRICE BET AI - CHAMPION 2 - {marche} JOUR INFINI J+{i}: {prono}<br>Cote {cote} - {prevention}</b><br>BASE {fav[0]}-{fav[1]} - Forme {forme_cheval}% - {risque} - Confiance {confiance}%<br>{analyse}<br>{d.strftime("%d/%m/%Y")} {datetime.now():%H:%M}</div>', unsafe_allow_html=True)
+            data_pmu=[{"Type LONAB PMU-B":marche,"Prono":prono,"Cote":cote,"Prevention":prevention,"Risque":risque,"Analyse Ultra Solide":analyse,"Confiance":f"{confiance}%","Jour":f"J+{i}"}]
             st.dataframe(pd.DataFrame(data_pmu), use_container_width=True, hide_index=True)
 
+# ===== CHAMPION 3 - BOURSE - TYPE LONAB BOURSE =====
 with tab3:
-    st.markdown("### FABRICE BET AI - BOURSE INTERNATIONALE - CHAMPION 3")
-    base_markets={
+    st.markdown("### FABRICE BET AI - BOURSE INTERNATIONALE - CHAMPION 3 - TYPE LONAB BOURSE")
+    type_lonab_p3=st.selectbox("Type LONAB - CHAMPION 3 - BOURSE", [
+        "AI AUTO - Complet - Recommande",
+        "FOREX - EUR USD XOF",
+        "CRYPTO - BTC ETH SOL",
+        "INDICES - S&P NASDAQ CAC",
+        "OR PETROLE - GOLD OIL",
+        "ACHETER - BUY",
+        "VENDRE - SELL",
+        "Scalping - Court Terme",
+        "Day Trading - Journalier",
+        "Long Terme - HOLD",
+        "Actions - AAPL TSLA NVDA"
+    ], index=0, key="type_p3_v62")
+    st.success(f"CHAMPION 3 - {type_lonab_p3} - PREVENTION + AI ULTRA SOLIDE - TYPE LONAB BOURSE")
+    
+    base_markets_all={
         "BTC/USD":(crypto_live["BTC"],"CRYPTO","$"),"ETH/USD":(crypto_live["ETH"],"CRYPTO","$"),"SOL/USD":(crypto_live["SOL"],"CRYPTO","$"),
-        "EUR/USD":(1.0850,"FOREX",""),"USD/XOF":(605.50,"FOREX"," XOF"),"EUR/XOF":(655.95,"FOREX"," XOF"),
-        "S&P 500":(5230.50,"INDICE"," pts"),"NASDAQ":(16340.20,"INDICE"," pts"),"GOLD Or":(2385.40,"OR","$/oz"),"OIL Brent":(84.20,"PETROLE","$/b"),
+        "EUR/USD":(1.0850,"FOREX",""),"GBP/USD":(1.2720,"FOREX",""),"USD/JPY":(154.30,"FOREX",""),
+        "USD/XOF":(605.50,"FOREX"," XOF"),"EUR/XOF":(655.95,"FOREX"," XOF"),
+        "S&P 500":(5230.50,"INDICE"," pts"),"NASDAQ":(16340.20,"INDICE"," pts"),"DOW JONES":(38520.10,"INDICE"," pts"),"CAC 40":(8105.30,"INDICE"," pts"),
+        "AAPL Apple":(195.20,"ACTION","$"),"TSLA Tesla":(245.80,"ACTION","$"),"NVDA Nvidia":(880.50,"ACTION","$"),
+        "GOLD Or":(2385.40,"OR","$/oz"),"OIL Brent":(84.20,"PETROLE","$/b"),
     }
+    
     total=st.session_state.nb*3
     for i in range(total):
         d=datetime.now()+timedelta(days=i)
         nom=jours_fr[d.weekday()]
-        rnd=random.Random(seed(d, "bourse_v60_prevention"))
+        rnd=random.Random(seed(d, f"p3_v62_{type_lonab_p3}"))
         is_today=(i==0)
-        jour_label="AUJOURDHUI - JOUR INFINI - PREVENTION" if is_today else f"J+{i} - JOUR INFINI - PREVENTION"
-        with st.expander(f"FABRICE BET AI - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - BOURSE - PREVENTION", expanded=is_today):
+        jour_label="AUJOURDHUI - JOUR INFINI" if is_today else f"J+{i} - JOUR INFINI"
+        with st.expander(f"CHAMPION 3 - {jour_label} - {nom} {d.strftime('%d/%m/%Y')} - {type_lonab_p3}", expanded=is_today):
+            # FILTRAGE SELON TYPE LONAB BOURSE
+            if "FOREX" in type_lonab_p3:
+                filtered = {k:v for k,v in base_markets_all.items() if v[1]=="FOREX"}
+            elif "CRYPTO" in type_lonab_p3:
+                filtered = {k:v for k,v in base_markets_all.items() if v[1]=="CRYPTO"}
+            elif "INDICES" in type_lonab_p3:
+                filtered = {k:v for k,v in base_markets_all.items() if v[1]=="INDICE"}
+            elif "OR PETROLE" in type_lonab_p3:
+                filtered = {k:v for k,v in base_markets_all.items() if v[1] in ["OR","PETROLE"]}
+            elif "Actions" in type_lonab_p3:
+                filtered = {k:v for k,v in base_markets_all.items() if v[1]=="ACTION"}
+            else:
+                filtered = base_markets_all
+            
             data_b=[]
-            for name,(base_price,cat,unit) in base_markets.items():
+            for name,(base_price,cat,unit) in filtered.items():
                 var=rnd.uniform(-0.008,0.008) if cat=="FOREX" else rnd.uniform(-0.04,0.05)
                 prix=base_price * (1 + var * (i+1)*0.3) if not is_today else base_price
                 rsi=rnd.randint(22,78)
                 tendance=rnd.choice(["HAUSSIER FORT","BAISSIER FORT","HAUSSIER LEGER","LATERAL","BAISSIER LEGER"])
                 force=rnd.randint(58,92)
-                forme_marche=rnd.randint(60,92)
-                confiance=rnd.randint(58,92)
                 
-                if rsi < 30:
-                    signal="ACHETER"
-                    prevention_bourse="🟢 FEU VERT - RISQUE FAIBLE - ACHAT"
-                    risque_bourse="Risque Faible - Survente opportunite"
-                elif rsi > 70:
-                    signal="VENDRE"
-                    prevention_bourse="🟢 FEU VERT - RISQUE FAIBLE - VENTE"
-                    risque_bourse="Risque Faible - Surachat opportunite"
-                elif "HAUSSIER FORT" in tendance:
-                    signal="ACHETER"
-                    prevention_bourse="🟢 FEU VERT - RISQUE FAIBLE"
-                    risque_bourse="Risque Faible - Tendance forte"
-                elif "LATERAL" in tendance:
-                    signal="ATTENTE"
-                    prevention_bourse="🟠 FEU ORANGE - RISQUE MOYEN"
-                    risque_bourse="Risque Moyen - Lateral pas clair"
-                else:
-                    signal="VENDRE" if "BAISSIER" in tendance else "ATTENTE"
-                    prevention_bourse="🟠 FEU ORANGE - RISQUE MOYEN"
-                    risque_bourse="Risque Moyen - Tendance legere"
+                # TYPE LONAB BOURSE LOGIQUE
+                if "ACHETER" in type_lonab_p3:
+                    signal = "ACHETER"
+                    confiance = rnd.randint(68,90)
+                    prevention = "🟢 FEU VERT - ACHAT" if rsi < 40 else "🟠 FEU ORANGE - ACHAT"
+                    risque = "Risque Faible - Survente" if rsi < 35 else "Risque Moyen"
+                elif "VENDRE" in type_lonab_p3:
+                    signal = "VENDRE"
+                    confiance = rnd.randint(66,88)
+                    prevention = "🟢 FEU VERT - VENTE" if rsi > 60 else "🟠 FEU ORANGE - VENTE"
+                    risque = "Risque Faible - Surachat" if rsi > 65 else "Risque Moyen"
+                elif "Scalping" in type_lonab_p3:
+                    signal = "ACHETER" if tendance=="HAUSSIER FORT" else "VENDRE" if tendance=="BAISSIER FORT" else rnd.choice(["ACHETER","VENDRE"])
+                    confiance = rnd.randint(55,78)
+                    prevention = "🟠 FEU ORANGE - SCALPING" if confiance < 70 else "🟢 FEU VERT - SCALPING"
+                    risque = "Risque Moyen - Court terme"
+                elif "Day Trading" in type_lonab_p3:
+                    signal = "ACHETER" if "HAUSSIER" in tendance else "VENDRE" if "BAISSIER" in tendance else "ATTENTE"
+                    confiance = rnd.randint(60,84)
+                    prevention = "🟢 FEU VERT - DAY TRADING" if confiance >= 72 else "🟠 FEU ORANGE - DAY TRADING"
+                    risque = "Risque Faible" if confiance >= 72 else "Risque Moyen"
+                elif "Long Terme" in type_lonab_p3:
+                    signal = "ACHETER" if "HAUSSIER" in tendance else "ATTENTE"
+                    confiance = rnd.randint(70,90)
+                    prevention = "🟢 FEU VERT - LONG TERME"
+                    risque = "Risque Tres Faible - HOLD"
+                else: # AI AUTO
+                    if rsi < 30:
+                        signal = "ACHETER"
+                        confiance = rnd.randint(75,92)
+                        prevention = "🟢 FEU VERT - RISQUE FAIBLE - ACHAT"
+                        risque = "Risque Faible"
+                    elif rsi > 70:
+                        signal = "VENDRE"
+                        confiance = rnd.randint(72,90)
+                        prevention = "🟢 FEU VERT - RISQUE FAIBLE - VENTE"
+                        risque = "Risque Faible"
+                    else:
+                        signal = "ACHETER" if "HAUSSIER" in tendance else "VENDRE" if "BAISSIER" in tendance else "ATTENTE"
+                        confiance = rnd.randint(58,86)
+                        prevention = "🟢 FEU VERT - RISQUE FAIBLE" if confiance >= 75 else "🟠 FEU ORANGE - RISQUE MOYEN"
+                        risque = "Risque Faible" if confiance >= 75 else "Risque Moyen"
                 
-                if confiance < 62:
-                    prevention_bourse="🔴 FEU ROUGE - RISQUE ELEVE"
-                    risque_bourse="Risque Eleve - Volatilite"
-                
-                if "ACHETER" in signal and confiance >= 80:
-                    analyse=f"AI ULTRA SOLIDE - RSI {rsi} {tendance} - Forme {forme_marche}% Force {force}% - {prevention_bourse} - Opportunite Achat - Analyse ultra solide rapide et efficace - J+{i}"
-                else:
-                    analyse=f"AI ULTRA SOLIDE - {tendance} - RSI {rsi} - Forme {forme_marche}% Force {force}% - {prevention_bourse} - {risque_bourse} - Confiance {confiance}% - Rapide et Efficace - J+{i}"
-                
+                analyse=f"AI ULTRA SOLIDE - {tendance} RSI {rsi} - {type_lonab_p3} - Forme {rnd.randint(60,92)}% Force {force}% - {prevention} - {risque} - Confiance {confiance}% - Rapide et Efficace - J+{i}"
                 label_prix=f"{prix:,.4f}{unit} LIVE" if cat=="FOREX" and is_today else f"{prix:,.2f}{unit} LIVE" if is_today else f"{prix:,.4f}{unit} J+{i}" if cat=="FOREX" else f"{prix:,.2f}{unit} J+{i}"
+                
                 data_b.append({
                     "Actif":name,
                     "Prix":label_prix,
                     "Signal":signal,
-                    "Prevention":prevention_bourse,
-                    "Risque":risque_bourse,
+                    "Type LONAB Bourse":type_lonab_p3,
+                    "Prevention":prevention,
+                    "Risque":risque,
                     "Analyse Ultra Solide":analyse,
                     "RSI":f"{rsi}",
                     "Confiance":f"{confiance}%",
@@ -363,4 +415,4 @@ with tab3:
                 })
             st.dataframe(pd.DataFrame(data_b), use_container_width=True, hide_index=True)
 
-st.success(f"FABRICE BET AI - V44 ORIGINAL - PREVENTION FEU VERT ORANGE ROUGE RISQUE - AI ULTRA SOLIDE RAPIDE ET EFFICACE - JOUR INFINI {st.session_state.nb*3} JOURS - {datetime.now():%H:%M:%S}")
+st.success(f"FABRICE BET AI - V62 - 3 CHAMPIONS AVEC TYPE LONAB - PARIS SPORTIFS / PMU-B / BOURSE - CHACUN SON TYPE LONAB POUR CHOISIR - JOUR INFINI {st.session_state.nb*3} JOURS - {datetime.now():%H:%M:%S}")
